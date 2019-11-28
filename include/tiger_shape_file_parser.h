@@ -6,6 +6,14 @@
 
 typedef std::map<uint_least32_t,CRtcBndWrapper> region_bnd_map_t;
 
+typedef enum
+{
+   State=0,
+   County=1,
+   SubCounty=2,
+   Place=3
+} region_type_e;
+
 class CTigerShapeFileParser
 {
 
@@ -20,6 +28,7 @@ class CTigerShapeFileParser
       std::string trim(std::string str);
       int_least32_t parseBNDData();
       int_least32_t parseRTCData();
+      int_least32_t serializeMapData( region_bnd_map_t regionMap,region_type_e regionType );
    public:
 
       CTigerShapeFileParser(std::string& rtcDataFile, std::string& bndDataFile);
