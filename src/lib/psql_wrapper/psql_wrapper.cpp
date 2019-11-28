@@ -1,10 +1,11 @@
 #include <psql_wrapper.h>
 
-CPSQLWrapper::CPSQLWrapper(std::string dbHostname, std::string dbName, std::string dbPassword)
+CPSQLWrapper::CPSQLWrapper(std::string dbHostname, std::string dbName, std::string dbUser, std::string dbPassword)
 {
    mDbHost=dbHostname;
    mDbName=dbName;
    mDbPassword=dbPassword;
+   mDbUser = dbUser;
    mDbConnection = nullptr;
    mQueryResult = nullptr;
 }
@@ -33,7 +34,8 @@ std::string CPSQLWrapper::getQueryErrorMessage()
 
 int_least32_t CPSQLWrapper::openConnection()
 {
-   std::string connectionString = std::string("host=") + mDbHost + std::string(" dbname=") + mDbName + std::string(" user=amouroug ")+ std::string(" password=") + mDbPassword;
+   std::string connectionString = std::string("host=") + mDbHost + std::string(" dbname=") + 
+      mDbName + std::string(" user=")+mDbUser+ std::string(" password=") + mDbPassword;
    mDbConnection =  PQconnectdb(connectionString.c_str());
    if(PQstatus(mDbConnection) != CONNECTION_OK)
    {

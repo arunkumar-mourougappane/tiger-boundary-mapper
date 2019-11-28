@@ -22,12 +22,13 @@ class CPSQLWrapper
       PGresult* mQueryResult;
       std::string mDbHost;
       std::string mDbName;
+      std::string mDbUser;
       std::string mDbPassword;
    public:
       int_least32_t openConnection();
       int_least32_t closeConnection();
       CPSQLWrapper(){};
-      CPSQLWrapper(std::string dbHostname, std::string dbName, std::string dbPassword);
+      CPSQLWrapper(std::string dbHostname, std::string dbName, std::string  dbUser, std::string dbPassword);
       ~CPSQLWrapper(){};
       ExecStatusType processQuery(const std::string& queryString);
       const std::string getDbName() const;

@@ -5,7 +5,7 @@
 
 CTigerShapeFileParser::CTigerShapeFileParser(std::string& rtcDataFile, std::string& bndDataFile)
 {
-   mPsqlWarapper = CPSQLWrapper("localhost", "amouroug", "FullMetalAlchemist#8");
+   mPsqlWarapper = CPSQLWrapper(PSQL_HOSTNAME, PSQL_DBNAME,PSQL_USER, PSQL_PASSWORD);
    mRtcDataFile = rtcDataFile;
    mBndDataFile = bndDataFile;
 }
@@ -63,7 +63,7 @@ int_least32_t CTigerShapeFileParser::parseRTCData()
       std::cerr << "Cannot open file.\n";
       return -1;
    }
-   
+   std::cout << "Parsed RTC Data Successfully.\n";
    return 0;
    
 }
@@ -176,6 +176,7 @@ int_least32_t CTigerShapeFileParser::parseBNDData()
    {
       mSubCountyBndMap.clear();
    }
+   std::cout << "Parsed BND Data Successfully.\n";
    return 0;
 }
 
@@ -183,14 +184,18 @@ int_least32_t CTigerShapeFileParser::parseBndRTCFiles()
 {
    if(parseRTCData() == 0)
    {
-      std::cout << "Parsing bounds data.\n";
-      return parseBNDData();
+      if( parseBNDData() != 0 )
+      {
+         std::cerr << "Failed to parse BND file.\n";
+         return -1;
+      }
    }
    else
    {
+      std::cerr << "Failed to parse RTC file.\n";
       return -1;
    }
-
+   return 0;
 }
 
 int_least32_t CTigerShapeFileParser::serializeMapData( region_bnd_map_t regionMap,region_type_e regionType )
@@ -225,12 +230,7 @@ int_least32_t CTigerShapeFileParser::serializeMapData( region_bnd_map_t regionMa
       if( mPsqlWarapper.processQuery(queryString) != PGRES_COMMAND_OK )
       {
          queryProcessingFailed = true;
-         std::cerr << "Failed to insert State:" << itrRtcBnd->second.to_string();
          std::cerr << mPsqlWarapper.getQueryErrorMessage() << std::endl;
-      }
-      else
-      {
-         std::cout << "Inserted ->" << itrRtcBnd->second.to_string();
       }
    }
    if(queryProcessingFailed)
@@ -283,6 +283,7 @@ int_least32_t CTigerShapeFileParser::saveParsedBndRTCData()
    {
       return -2;
    }
+   std::cout << "Shape Data Has been successfully Updated.\n";
    return 0;
 }
 
