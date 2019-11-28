@@ -21,10 +21,10 @@ class CRtcBndWrapper
       std::string to_string() const;
       uint_least32_t getRegionID();
       std::string  getRegionName();
-      std::string  getMinLatitude();
-      std::string  getMinLongitude();
-      std::string  getMaxLatitude();
-      std::string  getMaxLongitude();
+      std::string  getMinLatitude() const;
+      std::string  getMinLongitude() const;
+      std::string  getMaxLatitude() const;
+      std::string  getMaxLongitude() const;
       void setMinLatitude(std::string  minLatitude);
       void setMinLongitude(std::string  minLongitude);
       void setMaxLatitude(std::string  maxLatitude);

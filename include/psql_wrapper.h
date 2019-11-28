@@ -31,6 +31,7 @@ class CPSQLWrapper
       ~CPSQLWrapper(){};
       ExecStatusType processQuery(const std::string& queryString);
       const std::string getDbName() const;
+      std::string getQueryErrorMessage();
 
 };
 // CENSUS_BND_FILE_PARSER ends here.

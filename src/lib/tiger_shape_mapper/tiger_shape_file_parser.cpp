@@ -36,22 +36,22 @@ int_least32_t CTigerShapeFileParser::parseRTCData()
                case 'S':
                   idString = regionIDNameString.substr(5, 2);
                   rtcData = CRtcBndWrapper(idString, regionName);
-                  mStateBndMap.emplace(rtcData.getRegionID(),rtcData);
+                  mStateBndMap.insert(std::pair<uint_least32_t, CRtcBndWrapper> (rtcData.getRegionID(),rtcData));
                   break;
                case 'P':
                   idString = regionIDNameString.substr(5, 2) + regionIDNameString.substr(14, 5);
                   rtcData = CRtcBndWrapper(idString, regionName);
-                  mPlaceBndMap.emplace (rtcData.getRegionID(),rtcData);
+                  mPlaceBndMap.insert(std::pair<uint_least32_t, CRtcBndWrapper> (rtcData.getRegionID(),rtcData));
                   break;
                case 'C':
                   idString = regionIDNameString.substr(5, 5);
                   rtcData = CRtcBndWrapper(idString, regionName);
-                  mCountyBndMap.emplace (rtcData.getRegionID(),rtcData);
+                  mCountyBndMap.insert(std::pair<uint_least32_t, CRtcBndWrapper> (rtcData.getRegionID(),rtcData));
                   break;
                case 'M':
                   idString =  regionIDNameString.substr(5, 2) + regionIDNameString.substr(14, 5);
                   rtcData = CRtcBndWrapper(idString, regionName);
-                  mSubCountyBndMap.emplace (rtcData.getRegionID(),rtcData);
+                  mSubCountyBndMap.insert(std::pair<uint_least32_t, CRtcBndWrapper> (rtcData.getRegionID(),rtcData));
                   break;
             }
          }
@@ -60,6 +60,7 @@ int_least32_t CTigerShapeFileParser::parseRTCData()
    }
    else
    {
+      std::cerr << "Cannot open file.\n";
       return -1;
    }
    
@@ -75,9 +76,11 @@ int_least32_t CTigerShapeFileParser::parseBNDData()
    std::string regionID,minLongitude,minLatitude,maxLongitude,maxLatitude;
    uint_least32_t regionIDInt;
    std::ifstream readBoundsFileStream(mBndDataFile);
+   region_bnd_map_t stateBndMap, countyBndMap, placeBndMap, subCountyBndMap;
    std::map<uint_least32_t,CRtcBndWrapper>::iterator iteratorBndRRC;
    if(readBoundsFileStream.is_open())
    {
+
       while(getline(readBoundsFileStream, boundFileLineString))
       {
          regionID = boundFileLineString.substr(0,7);
@@ -85,58 +88,93 @@ int_least32_t CTigerShapeFileParser::parseBNDData()
          minLatitude = boundFileLineString.substr(17,9);
          maxLongitude = boundFileLineString.substr(26,10);
          maxLatitude = boundFileLineString.substr(36,9);
-
+         stringToint.clear();
          stringToint.str(regionID);
          stringToint >> regionIDInt;
+         iteratorBndRRC = mStateBndMap.find(regionIDInt);
+         if(iteratorBndRRC != mStateBndMap.end() )
+         {
+            iteratorBndRRC->second.setMinLongitude(minLongitude);
+            iteratorBndRRC->second.setMinLatitude(minLatitude);
+            iteratorBndRRC->second.setMaxLatitude(maxLatitude);
+            iteratorBndRRC->second.setMaxLongitude(maxLongitude);
+            stateBndMap.insert(std::pair<uint_least32_t, CRtcBndWrapper> (regionIDInt, CRtcBndWrapper(regionID,iteratorBndRRC->second.getRegionName(), minLatitude, minLongitude, maxLatitude,maxLongitude)));
+         }
+ 
+         iteratorBndRRC = mCountyBndMap.find(regionIDInt);
+         if(iteratorBndRRC != mCountyBndMap.end() )
+         {
+            iteratorBndRRC->second.setMinLongitude(minLongitude);
+            iteratorBndRRC->second.setMinLatitude(minLatitude);
+            iteratorBndRRC->second.setMaxLatitude(maxLatitude);
+            iteratorBndRRC->second.setMaxLongitude(maxLongitude);
+            countyBndMap.insert(std::pair<uint_least32_t, CRtcBndWrapper> (regionIDInt, CRtcBndWrapper(regionID,iteratorBndRRC->second.getRegionName(), minLatitude, minLongitude, maxLatitude,maxLongitude)));
+         }
+         iteratorBndRRC = mPlaceBndMap.find(regionIDInt);
+         if(iteratorBndRRC != mPlaceBndMap.end() )
+         {
+            iteratorBndRRC->second.setMinLongitude(minLongitude);
+            iteratorBndRRC->second.setMinLatitude(minLatitude);
+            iteratorBndRRC->second.setMaxLatitude(maxLatitude);
+            iteratorBndRRC->second.setMaxLongitude(maxLongitude);
+            placeBndMap.insert(std::pair<uint_least32_t, CRtcBndWrapper> (regionIDInt, CRtcBndWrapper(regionIDInt,iteratorBndRRC->second.getRegionName(), minLatitude, minLongitude, maxLatitude,maxLongitude)));
+         }
+         iteratorBndRRC = mSubCountyBndMap.find(regionIDInt);
+         if(iteratorBndRRC != mSubCountyBndMap.end() )
+         {
+            iteratorBndRRC->second.setMinLongitude(minLongitude);
+            iteratorBndRRC->second.setMinLatitude(minLatitude);
+            iteratorBndRRC->second.setMaxLatitude(maxLatitude);
+            iteratorBndRRC->second.setMaxLongitude(maxLongitude);
+            subCountyBndMap.insert(std::pair<uint_least32_t, CRtcBndWrapper> (regionIDInt, CRtcBndWrapper(regionID,iteratorBndRRC->second.getRegionName(), minLatitude, minLongitude, maxLatitude,maxLongitude)));
+         }
+         /* Clear all parsed data for loading next line. */
+         minLatitude.clear();
+         minLongitude.clear();
+         maxLatitude.clear();
+         maxLongitude.clear();
+         regionID.clear();
       }
-      iteratorBndRRC = mStateBndMap.find(regionIDInt);
-      if(iteratorBndRRC != mStateBndMap.end() )
-      {
-         iteratorBndRRC->second.setMinLongitude(minLongitude);
-         iteratorBndRRC->second.setMinLatitude(minLatitude);
-         iteratorBndRRC->second.setMaxLatitude(maxLatitude);
-         iteratorBndRRC->second.setMaxLongitude(maxLongitude);
-      }
-      iteratorBndRRC = mCountyBndMap.find(regionIDInt);
-      {
-         iteratorBndRRC->second.setMinLongitude(minLongitude);
-         iteratorBndRRC->second.setMinLatitude(minLatitude);
-         iteratorBndRRC->second.setMaxLatitude(maxLatitude);
-         iteratorBndRRC->second.setMaxLongitude(maxLongitude);
-      }
-      iteratorBndRRC = mCountyBndMap.find(regionIDInt);
-      {
-         iteratorBndRRC->second.setMinLongitude(minLongitude);
-         iteratorBndRRC->second.setMinLatitude(minLatitude);
-         iteratorBndRRC->second.setMaxLatitude(maxLatitude);
-         iteratorBndRRC->second.setMaxLongitude(maxLongitude);
-      }
-      iteratorBndRRC = mPlaceBndMap.find(regionIDInt);
-      {
-         iteratorBndRRC->second.setMinLongitude(minLongitude);
-         iteratorBndRRC->second.setMinLatitude(minLatitude);
-         iteratorBndRRC->second.setMaxLatitude(maxLatitude);
-         iteratorBndRRC->second.setMaxLongitude(maxLongitude);
-      }
-      iteratorBndRRC = mSubCountyBndMap.find(regionIDInt);
-      {
-         iteratorBndRRC->second.setMinLongitude(minLongitude);
-         iteratorBndRRC->second.setMinLatitude(minLatitude);
-         iteratorBndRRC->second.setMaxLatitude(maxLatitude);
-         iteratorBndRRC->second.setMaxLongitude(maxLongitude);
-      }
-      /* Clear all parsed data for loading next line. */
-      minLatitude.clear();
-      minLongitude.clear();
-      maxLatitude.clear();
-      maxLongitude.clear();
-      regionID.clear();
       readBoundsFileStream.close();
-      std::cout << iteratorBndRRC->second.to_string();
    }
    else
    {
+      std::cerr << "Cannot open file. ";
       return -1;
+   }
+   if(stateBndMap.size() != 0)
+   {
+      mStateBndMap = stateBndMap;
+   }
+   else
+   {
+      mStateBndMap.clear();
+   }
+   if(placeBndMap.size() != 0)
+   {
+      mPlaceBndMap = placeBndMap;
+   }
+   else
+   {
+      mPlaceBndMap.clear();
+   }
+   
+   if(countyBndMap.size() != 0)
+   {
+      mCountyBndMap = countyBndMap;
+   }
+   else
+   {
+      mCountyBndMap.clear();
+   }
+   
+   if(subCountyBndMap.size() != 0)
+   {
+      mSubCountyBndMap = subCountyBndMap;
+   }
+   else
+   {
+      mSubCountyBndMap.clear();
    }
    return 0;
 }
@@ -145,6 +183,7 @@ int_least32_t CTigerShapeFileParser::parseBndRTCFiles()
 {
    if(parseRTCData() == 0)
    {
+      std::cout << "Parsing bounds data.\n";
       return parseBNDData();
    }
    else
@@ -162,72 +201,80 @@ int_least32_t CTigerShapeFileParser::saveParsedBndRTCData()
 
    if(mPsqlWarapper.openConnection() != 0)
    {
+      std::cout << "Cannot open connection.\n";
       return -1;
    }
    for(itrRtcBnd = mStateBndMap.begin(); itrRtcBnd != mStateBndMap.end(); ++itrRtcBnd)
    {
-      std::string queryString = "INSERT INTO "+ mPsqlWarapper.getDbName()+".STATE (id,iname,minlatitude,maxlatitude,minlongitude,maxlongitude) values (" +
-               std::to_string(itrRtcBnd->second.getRegionID()) +"," + itrRtcBnd->second.getRegionName() +","+
-               itrRtcBnd->second.getMinLatitude()+","+itrRtcBnd->second.getMaxLatitude()+","+
-               itrRtcBnd->second.getMinLongitude()+","+itrRtcBnd->second.getMaxLongitude()+ ") on conflict (id) do nothing;";
-      if( mPsqlWarapper.processQuery(queryString) != PGRES_COMMAND_OK)
+      std::string queryString = "INSERT INTO "+ mPsqlWarapper.getDbName()+".STATE (ID,IName,Min_Latitude,Max_Latitude,Min_Longitude,Max_Longitude) values (" +
+               std::to_string(itrRtcBnd->second.getRegionID()) +",'" + itrRtcBnd->second.getRegionName() +"','"+
+               itrRtcBnd->second.getMinLatitude()+"','"+itrRtcBnd->second.getMaxLatitude()+"','"+
+               itrRtcBnd->second.getMinLongitude()+"','"+itrRtcBnd->second.getMaxLongitude()+ "') on conflict (id) do nothing;";
+      if( mPsqlWarapper.processQuery(queryString) != PGRES_COMMAND_OK )
       {
          queryProcessingFailed = true;
+         std::cerr << "Failed to insert State:" << itrRtcBnd->second.to_string();
+         std::cerr << mPsqlWarapper.getQueryErrorMessage() << std::endl;
       }
       else
       {
-         std::cerr << "Failed to insert :" << itrRtcBnd->second.to_string();
+         std::cout << "Inserted State->" << itrRtcBnd->second.to_string();
       }
       
    }
 
    for(itrRtcBnd = mCountyBndMap.begin(); itrRtcBnd != mCountyBndMap.end(); ++itrRtcBnd)
    {
-      std::string queryString = "INSERT INTO "+ mPsqlWarapper.getDbName()+".COUNTY (id,iname,minlatitude,maxlatitude,minlongitude,maxlongitude) values (" +
-               std::to_string(itrRtcBnd->second.getRegionID()) +"," + itrRtcBnd->second.getRegionName() +","+
-               itrRtcBnd->second.getMinLatitude()+","+itrRtcBnd->second.getMaxLatitude()+","+
-               itrRtcBnd->second.getMinLongitude()+","+itrRtcBnd->second.getMaxLongitude()+ ") on conflict (id) do nothing;";
-     if( mPsqlWarapper.processQuery(queryString) != PGRES_COMMAND_OK)
+      std::string queryString = "INSERT INTO "+ mPsqlWarapper.getDbName()+".COUNTY (ID,IName,Min_Latitude,Max_Latitude,Min_Longitude,Max_Longitude) values (" +
+               std::to_string(itrRtcBnd->second.getRegionID()) +",'" + itrRtcBnd->second.getRegionName() +"','"+
+               itrRtcBnd->second.getMinLatitude()+"','"+itrRtcBnd->second.getMaxLatitude()+"','"+
+               itrRtcBnd->second.getMinLongitude()+"','"+itrRtcBnd->second.getMaxLongitude()+ "') on conflict (id) do nothing;";
+      if( mPsqlWarapper.processQuery(queryString) != PGRES_COMMAND_OK )
       {
          queryProcessingFailed = true;
+         std::cerr << "Failed to insert County:" << itrRtcBnd->second.to_string();
+         std::cerr << mPsqlWarapper.getQueryErrorMessage() << std::endl;
       }
       else
       {
-         std::cerr << "Failed to insert :" << itrRtcBnd->second.to_string();
+         std::cout << "Inserted County ->" << itrRtcBnd->second.to_string();
       }
    }
    for(itrRtcBnd = mSubCountyBndMap.begin(); itrRtcBnd != mSubCountyBndMap.end(); ++itrRtcBnd)
    {
-      std::string queryString = "INSERT INTO "+ mPsqlWarapper.getDbName()+".SUBCOUNTY (id,iname,minlatitude,maxlatitude,minlongitude,maxlongitude) values (" +
-               std::to_string(itrRtcBnd->second.getRegionID()) +"," + itrRtcBnd->second.getRegionName() +","+
-               itrRtcBnd->second.getMinLatitude()+","+itrRtcBnd->second.getMaxLatitude()+","+
-               itrRtcBnd->second.getMinLongitude()+","+itrRtcBnd->second.getMaxLongitude()+ ") on conflict (id) do nothing;";
-      if( mPsqlWarapper.processQuery(queryString) != PGRES_COMMAND_OK)
+      std::string queryString = "INSERT INTO "+ mPsqlWarapper.getDbName()+".SUBCOUNTY (ID,IName,Min_Latitude,Max_Latitude,Min_Longitude,Max_Longitude) values (" +
+               std::to_string(itrRtcBnd->second.getRegionID()) +",'" + itrRtcBnd->second.getRegionName() +"','"+
+               itrRtcBnd->second.getMinLatitude()+"','"+itrRtcBnd->second.getMaxLatitude()+"','"+
+               itrRtcBnd->second.getMinLongitude()+"','"+itrRtcBnd->second.getMaxLongitude()+ "') on conflict (id) do nothing;";
+      if( mPsqlWarapper.processQuery(queryString) != PGRES_COMMAND_OK )
       {
          queryProcessingFailed = true;
+         std::cerr << "Failed to insert sub County:" << itrRtcBnd->second.to_string();
+         std::cerr << mPsqlWarapper.getQueryErrorMessage() << std::endl;
       }
       else
       {
-         std::cerr << "Failed to insert :" << itrRtcBnd->second.to_string();
+         std::cout << "Inserted Sub County ->" << itrRtcBnd->second.to_string();
       }
    }
 
-   for(itrRtcBnd = mSubCountyBndMap.begin(); itrRtcBnd != mSubCountyBndMap.end(); ++itrRtcBnd)
+   for(itrRtcBnd = mPlaceBndMap.begin(); itrRtcBnd != mPlaceBndMap.end(); ++itrRtcBnd)
    {
-      std::string  queryString = "INSERT INTO "+mPsqlWarapper.getDbName()+".PLACE (id,iname,minlatitude,maxlatitude,minlongitude,maxlongitude) values (" +
-               std::to_string(itrRtcBnd->second.getRegionID()) +"," + itrRtcBnd->second.getRegionName() +","+
-               itrRtcBnd->second.getMinLatitude()+","+itrRtcBnd->second.getMaxLatitude()+","+
-               itrRtcBnd->second.getMinLongitude()+","+itrRtcBnd->second.getMaxLongitude()+ ") on conflict (id) do nothing;";
-      if( mPsqlWarapper.processQuery(queryString) != PGRES_COMMAND_OK)
+      std::string  queryString = "INSERT INTO "+mPsqlWarapper.getDbName()+".PLACE (ID,IName,Min_Latitude,Max_Latitude,Min_Longitude,Max_Longitude) values (" +
+               std::to_string(itrRtcBnd->second.getRegionID()) +",'" + itrRtcBnd->second.getRegionName() +"','"+
+               itrRtcBnd->second.getMinLatitude()+"','"+itrRtcBnd->second.getMaxLatitude()+"','"+
+               itrRtcBnd->second.getMinLongitude()+"','"+itrRtcBnd->second.getMaxLongitude()+ "') on conflict (id) do nothing;";
+      if( mPsqlWarapper.processQuery(queryString) != PGRES_COMMAND_OK )
       {
          queryProcessingFailed = true;
+         std::cerr << "Failed to insert sub County:" << itrRtcBnd->second.to_string();
+         std::cerr << mPsqlWarapper.getQueryErrorMessage() << std::endl;
       }
       else
       {
-         std::cerr << "Failed to insert :" << itrRtcBnd->second.to_string();
+         std::cout << "Inserted Place ->" << itrRtcBnd->second.to_string();
       }
    }
-   
    
    if(mPsqlWarapper.closeConnection() != 0)
    {

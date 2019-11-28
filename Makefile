@@ -51,6 +51,9 @@ libs: $(LIBS)
 
 apps:	$(APPS)
 
+run-test: 
+	./build/app/serialize_shape_data/serialize_shape_data
+
 clean:
 	rm -fr $(BUILDDIR) $(OUTPUT_DIR)
 

@@ -8,9 +8,10 @@
 
 int main(int argc, const char** argv) 
 {
-   std::string rtcFile("./data_files/TGR17037.RTC");
-   std::string bndFile("./data_files/state17s.bnd");
+   std::string rtcFile("/home/amouroug/projects/tiger-boundary-mapper/data_files/TGR17037.RTC");
+   std::string bndFile("/home/amouroug/projects/tiger-boundary-mapper/data_files/county.bnd");
    CTigerShapeFileParser tigerShapeFileParser(rtcFile,bndFile);
-   tigerShapeFileParser.parseBndRTCFiles();
-   tigerShapeFileParser.saveParsedBndRTCData();
+   if(tigerShapeFileParser.parseBndRTCFiles() != 0)
+      return -1;
+   return tigerShapeFileParser.saveParsedBndRTCData();
 }
