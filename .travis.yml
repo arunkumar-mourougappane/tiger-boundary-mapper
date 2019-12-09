@@ -6,21 +6,6 @@ language: c++
 matrix:
   include:
     - os: linux
-      services: 
-      - postgres
-      addons:
-        postgresql: "10"
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-6
-            - libpq5
-            - libpq-dev
-      env:
-        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
-
-    - os: linux
       services:
       - postgres
       addons:
@@ -46,4 +31,4 @@ before_script:
 
 script:
   - make 
-  - build/app/serialize_shape_data/serialize_shape_data --bnd-dir ./data_files --rtc-dir ./data_files
+  - build/app/serialize_shape_data/serialize_shape_data --bnd-dir ./data_files/ --rtc-dir ./data_files/
