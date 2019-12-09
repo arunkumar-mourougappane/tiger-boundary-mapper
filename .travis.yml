@@ -5,8 +5,9 @@ language: c++
 
 matrix:
   include:
-    # works on Precise and Trusty
     - os: linux
+      services: 
+      - postgres
       addons:
         postgresql: "10"
         apt:
@@ -19,8 +20,9 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
 
-    # works on Precise and Trusty
     - os: linux
+      services:
+      - postgres
       addons:
         postgresql: "10"
         apt:
@@ -37,5 +39,11 @@ matrix:
 before_install:
     - eval "${MATRIX_EVAL}"
 
+before_script:
+  - psql -c "create user amouroug with encrypted password 'FullMetalAlchemist#8';" -U postgres
+  - psql -c "ALTER USER amouroug WITH SUPERUSER CREATEDB CREATEROLE;" -U postgres
+  - psql -f ./setup_psql_db.sql -U postgres
+
 script:
-  - make all
+  - make 
+  - build/app/serialize_shape_data/serialize_shape_data --bnd-dir ./data_files --rtc-dir ./data_files
