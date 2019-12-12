@@ -19,14 +19,14 @@ matrix:
             - libpq5
             - libpq-dev
       env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        global:
+          - PGPORT=5432
+          - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 
 before_install:
     - eval "${MATRIX_EVAL}"
 
 before_script:
-  - psql -c "create user amouroug with encrypted password 'FullMetalAlchemist#8';" -U postgres
-  - psql -c "ALTER USER amouroug WITH SUPERUSER CREATEDB CREATEROLE;" -U postgres
   - psql -f ./setup_psql_db.sql -U postgres
 
 script:

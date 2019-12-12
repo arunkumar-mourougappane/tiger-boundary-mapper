@@ -1,9 +1,9 @@
-drop schema if exists amouroug cascade;
-
-create schema amouroug;
-create user amouroug with encrypted password 'FullMetalAlchemist#8';
-grant all privileges on database amouroug to amouroug;
-create table amouroug.STATE(ID int primary key, IName varchar(50), Min_Latitude varchar(10), Max_Latitude varchar(10), Min_Longitude varchar(10), Max_Longitude varchar(10));
-create table amouroug.COUNTY(ID int primary key, IName varchar(50), Min_Latitude varchar(10), Max_Latitude varchar(10), Min_Longitude varchar(10), Max_Longitude varchar(10));
-create table amouroug.PLACE(ID int primary key, IName varchar(50), Min_Latitude varchar(10), Max_Latitude varchar(10), Min_Longitude varchar(10), Max_Longitude varchar(10));
-create table amouroug.SUBCOUNTY(ID int primary key, IName varchar(50), Min_Latitude varchar(10), Max_Latitude varchar(10), Min_Longitude varchar(10), Max_Longitude varchar(10));
+DROP SCHEMA IF EXISTS amouroug CASCADE;
+CREATE SCHEMA amouroug;
+CREATE USER amouroug WITH PASSWORD 'FullMetalAlchemist#8';
+ALTER USER amouroug WITH SUPERUSER CREATEDB CREATEROLE;
+GRANT ALL PRIVILEGES ON DATABASE amouroug TO amouroug;
+CREATE TABLE amouroug.STATE(ID INT PRIMARY KEY, IName VARCHAR(50), Min_Latitude VARCHAR(10), Max_Latitude VARCHAR(10), Min_Longitude VARCHAR(10), Max_Longitude VARCHAR(10));
+CREATE TABLE amouroug.COUNTY(ID INT PRIMARY KEY, IName VARCHAR(50), Min_Latitude VARCHAR(10), Max_Latitude VARCHAR(10), Min_Longitude VARCHAR(10), Max_Longitude VARCHAR(10));
+CREATE TABLE  amouroug.PLACE(ID INT PRIMARY KEY, IName VARCHAR(50), Min_Latitude VARCHAR(10), Max_Latitude VARCHAR(10), Min_Longitude VARCHAR(10), Max_Longitude VARCHAR(10));
+CREATE TABLE  amouroug.SUBCOUNTY(ID INT PRIMARY KEY, IName VARCHAR(50), Min_Latitude VARCHAR(10), Max_Latitude VARCHAR(10), Min_Longitude VARCHAR(10), Max_Longitude VARCHAR(10));

@@ -39,7 +39,7 @@ class CTigerShapeFileParser
       static constexpr const char* PSQL_DBNAME = "amouroug";
       static constexpr const char* PSQL_PASSWORD = "FullMetalAlchemist#8";
       static constexpr const char* PSQL_USER = "amouroug";
-      static constexpr const char* PSQL_HOSTNAME = "localhost";
+      static constexpr const char* PSQL_HOSTNAME = "127.0.0.1";
 };
 
 #endif
