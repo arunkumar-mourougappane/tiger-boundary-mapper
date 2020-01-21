@@ -11,7 +11,6 @@ class CRtcBndWrapper
       std::string  mMaxLatitude = "";
       std::string  mMaxLongitude = "";
 
-
    public:
       CRtcBndWrapper(std::string  regionID, std::string  regionName,std::string  minLatitude, std::string  minLongitude, std::string  maxLatitude, std::string  maxLongitude);
       CRtcBndWrapper(uint_least32_t regionID, std::string  regionName,std::string  minLatitude, std::string  minLongitude, std::string  maxLatitude, std::string  maxLongitude);

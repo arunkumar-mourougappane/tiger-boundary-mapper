@@ -25,10 +25,16 @@ matrix:
 
 before_install:
     - eval "${MATRIX_EVAL}"
+    - sudo service postgresql restart
 
 before_script:
   - psql -f ./setup_psql_db.sql -U postgres
+  - psql -f ./table_creation.sql -U postgres -d amouroug 
 
 script:
-  - make 
-  - build/app/serialize_shape_data/serialize_shape_data --bnd-dir ./data_files/ --rtc-dir ./data_files/
+  - make -j$(cat /proc/cpuinfo | grep processor | tail -1| cut -d":" -f2)
+  - build/app/shape_data_app/shape_data_app --bnd-dir ./data_files/ --rtc-dir ./data_files/
+  - build/app/shape_data_app/shape_data_app --search Illinois
+  - build/app/shape_data_app/shape_data_app --search Atlanta
+  - build/app/shape_data_app/shape_data_app --search DeKalb
+  - build/app/shape_data_app/shape_data_app --search Lithonia

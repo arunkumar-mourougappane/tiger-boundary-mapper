@@ -11,7 +11,8 @@ typedef enum
    State=0,
    County=1,
    SubCounty=2,
-   Place=3
+   Place=3,
+   invalid = 4
 } region_type_e;
 
 class CTigerShapeFileParser
@@ -22,19 +23,21 @@ class CTigerShapeFileParser
       ~CTigerShapeFileParser(){};
       int_least32_t parseBndRTCFiles();
       int_least32_t saveParsedBndRTCData();
+      int_least32_t searchRegionByName( std::string& regionName, region_bnd_map_t& regionMap );
 
    private:
       region_bnd_map_t mStateBndMap;
       region_bnd_map_t mCountyBndMap;
       region_bnd_map_t mSubCountyBndMap;
       region_bnd_map_t mPlaceBndMap;
-      CPSQLWrapper mPsqlWarapper;
+      CPSQLWrapper mPsqlWrapper;
       std::string mRtcDataFile;
       std::string mBndDataFile;
       std::string trim(std::string str);
       int_least32_t parseBNDData();
       int_least32_t parseRTCData();
       int_least32_t serializeMapData( region_bnd_map_t regionMap,region_type_e regionType );
+      int_least32_t searchRegionByName( std::string& regionName, region_bnd_map_t& regionMap, std::string tableName );
 
       static constexpr const char* PSQL_DBNAME = "amouroug";
       static constexpr const char* PSQL_PASSWORD = "FullMetalAlchemist#8";

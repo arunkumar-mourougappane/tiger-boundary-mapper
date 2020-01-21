@@ -54,3 +54,24 @@ int_least32_t CPSQLWrapper::closeConnection()
    return -1;
 }
 
+int_least32_t CPSQLWrapper::GetResultSetSize()
+{
+   if(( mQueryResult != NULL) && (PQresultStatus(mQueryResult) == PGRES_TUPLES_OK))
+   {
+      return PQntuples(mQueryResult);
+   }
+   return -1;
+}
+
+int_least32_t CPSQLWrapper::GetColumnSize()
+{
+   if(( mQueryResult != NULL) && (PQresultStatus(mQueryResult) == PGRES_TUPLES_OK))
+   {
+      return PQnfields(mQueryResult);
+   }
+   return -1;
+}
+PGresult* CPSQLWrapper::GetQueryResult()
+{
+   return mQueryResult;
+}

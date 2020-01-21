@@ -45,7 +45,7 @@ std::string CRtcBndWrapper::to_string() const
 {
    std::string templateString = std::string("Region ID: ") + std::to_string(mRegionID) + std::string("\tRegion Name: ") + mRegionName + std::string("\t Bounds: ");
    templateString = templateString + std::string ("Min Latitude: ") + GetDecimalLatitude(mMinLatitude) + std::string (",Max Latitude: ") + GetDecimalLatitude(mMaxLatitude) + 
-   std::string ("; Min Longitude: ") + GetDecimalLongitude(mMinLongitude) + std::string (",Max Longitude: ") + GetDecimalLongitude(mMaxLongitude) + std::string("\n");
+   std::string ("; Min Longitude: ") + GetDecimalLongitude(mMinLongitude) + std::string (", Max Longitude: ") + GetDecimalLongitude(mMaxLongitude) + std::string("\n");
    return templateString;
 }
 
@@ -99,28 +99,31 @@ std::string CRtcBndWrapper::GetDecimalLatitude(std::string degreeDecimal) const
    {
       return degMinSec;
    }
-   std::stringstream degreeSring;
+   std::stringstream degreeString;
+   std::stringstream minutesString, secondString;
    /*Convert string into appropriate integer and float values*/
    unsigned int degrees; 
-   degreeSring.str(degreeDecimal.substr(1,2));
-   degreeSring >> degrees;
+   degreeString.str(degreeDecimal.substr(1,2));
+   degreeString >> degrees;
    /* extract and calculate minutes */
    float  minutes = (stof(degreeDecimal.substr(3,degreeDecimal.length()))*60/1000000);
    double minutes_double;
    float secondFractions= modf(minutes, &minutes_double);
-   float seconds = secondFractions * 60;
-   degMinSec = std::to_string(degrees) + "° " + std::to_string(minutes_double) + "\' " + std::to_string(seconds) + "\"";
+   minutesString << minutes_double;
+   minutesString.precision(2);
+   float seconds = ((int)(secondFractions * 60*100.00))/100.0;
+   secondString << seconds;
+   secondString.precision(2);
+   degMinSec = std::to_string(degrees) + "° " + minutesString.str() + "\' " + secondString.str() + "\"";
    if(degreeDecimal.at(0) == '-')
    {
-      degMinSec+= " South";
+      degMinSec+= " S";
    }
    else if(degreeDecimal.at(0) == '+')
    {
-      degMinSec += " North";
+      degMinSec += " N";
    }
-
    return degMinSec;
-
 }
 
 std::string CRtcBndWrapper::GetDecimalLongitude(std::string degreeDecimal) const 
@@ -132,6 +135,7 @@ std::string CRtcBndWrapper::GetDecimalLongitude(std::string degreeDecimal) const
       return degMinSec;
    }
    std::stringstream degreeSring;
+   std::stringstream minutesString, secondString;
    /*Convert string into appropriate integer and float values*/
    unsigned int degrees; 
    degreeSring.str(degreeDecimal.substr(1,2));
@@ -140,17 +144,21 @@ std::string CRtcBndWrapper::GetDecimalLongitude(std::string degreeDecimal) const
    float  minutes = (stof(degreeDecimal.substr(4,degreeDecimal.length()))*60/1000000);
    double minutes_double;
    float secondFractions= modf(minutes, &minutes_double);
-   float seconds = secondFractions * 60;
-   degMinSec = std::to_string(degrees) + "° " + std::to_string(minutes_double) + "\' " + std::to_string(seconds) + "\"";
+   minutesString << minutes_double;
+   minutesString.precision(2);
+   float seconds = ((int)(secondFractions * 60*100.00))/100.0;
+   secondString << seconds;
+   secondString.precision(2);
+   degMinSec = std::to_string(degrees) + "° " + minutesString.str() + "\' " + secondString.str() + "\"";
    
    /*Set east or west direct based on sign.*/
    if(degreeDecimal.at(0) == '-')
    {
-      degMinSec += " West";
+      degMinSec += " W";
    }
    else if(degreeDecimal.at(0) == '+')
    {
-     degMinSec += " East";
+     degMinSec += " E";
    }
 
    return degMinSec;

@@ -2,12 +2,19 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <errno.h>
+#include <cstdlib>
 
 CTigerShapeFileParser::CTigerShapeFileParser(std::string& rtcDataFile, std::string& bndDataFile)
 {
-   mPsqlWarapper = CPSQLWrapper(PSQL_HOSTNAME, PSQL_DBNAME,PSQL_USER, PSQL_PASSWORD);
+   mPsqlWrapper = CPSQLWrapper(PSQL_HOSTNAME, PSQL_DBNAME,PSQL_USER, PSQL_PASSWORD);
    mRtcDataFile = rtcDataFile;
    mBndDataFile = bndDataFile;
+}
+
+CTigerShapeFileParser::CTigerShapeFileParser()
+{
+   mPsqlWrapper = CPSQLWrapper(PSQL_HOSTNAME, PSQL_DBNAME,PSQL_USER, PSQL_PASSWORD);
 }
 
 int_least32_t CTigerShapeFileParser::parseRTCData()
@@ -223,14 +230,14 @@ int_least32_t CTigerShapeFileParser::serializeMapData( region_bnd_map_t regionMa
    }
    for(itrRtcBnd = regionMap.begin(); itrRtcBnd != regionMap.end(); ++itrRtcBnd)
    {
-      std::string queryString = "INSERT INTO "+ mPsqlWarapper.getDbName()+"."+tableName+" (ID,IName,Min_Latitude,Max_Latitude,Min_Longitude,Max_Longitude) values (" +
+      std::string queryString = "INSERT INTO "+tableName+" (ID,IName,Min_Latitude,Max_Latitude,Min_Longitude,Max_Longitude) values (" +
                std::to_string(itrRtcBnd->second.getRegionID()) +",'" + itrRtcBnd->second.getRegionName() +"','"+
                itrRtcBnd->second.getMinLatitude()+"','"+itrRtcBnd->second.getMaxLatitude()+"','"+
                itrRtcBnd->second.getMinLongitude()+"','"+itrRtcBnd->second.getMaxLongitude()+ "') on conflict (id) do nothing;";
-      if( mPsqlWarapper.processQuery(queryString) != PGRES_COMMAND_OK )
+      if( mPsqlWrapper.processQuery(queryString) != PGRES_COMMAND_OK )
       {
          queryProcessingFailed = true;
-         std::cerr << mPsqlWarapper.getQueryErrorMessage() << std::endl;
+         std::cerr << mPsqlWrapper.getQueryErrorMessage() << std::endl;
       }
    }
    if(queryProcessingFailed)
@@ -249,10 +256,10 @@ int_least32_t CTigerShapeFileParser::saveParsedBndRTCData()
    bool queryProcessingFailed = false;
    std::map<uint_least32_t, CRtcBndWrapper>::iterator itrRtcBnd; 
 
-   if(mPsqlWarapper.openConnection() != 0)
+   if(mPsqlWrapper.openConnection() != 0)
    {
       std::cout << "Cannot open connection.\n";
-      return -1;
+      exit(ENAVAIL);
    }
 
    if( serializeMapData(mStateBndMap,region_type_e::State) != 0)
@@ -274,7 +281,7 @@ int_least32_t CTigerShapeFileParser::saveParsedBndRTCData()
       queryProcessingFailed = true;
    }
 
-   if(mPsqlWarapper.closeConnection() != 0)
+   if(mPsqlWrapper.closeConnection() != 0)
    {
       return -1;
    }
@@ -302,4 +309,110 @@ std::string CTigerShapeFileParser::trim(std::string str)
       }
     }
    return returnString;
+}
+
+int_least32_t CTigerShapeFileParser::searchRegionByName ( std::string& regionName, region_bnd_map_t& regionMap, std::string tableName )
+{
+   std::string queryToProcess;
+   region_bnd_map_t bndRegionMap;
+   queryToProcess = std::string("SELECT * FROM ") + tableName +" WHERE iname = '" + regionName +"';";
+   if(mPsqlWrapper.openConnection() != 0)
+   {
+      std::cout << "Cannot open connection.\n";
+      exit(ENAVAIL);
+   }
+   if ( mPsqlWrapper.processQuery(queryToProcess) !=  PGRES_TUPLES_OK )
+   {
+      std::cout << "Program did not complete success fully." << std::endl;
+   }
+
+   if ( mPsqlWrapper.processQuery(queryToProcess)  == PGRES_EMPTY_QUERY )
+   {
+#ifdef DEBUG
+      std::cout << "Cannot find any entries from " << tableName << std::endl;
+#endif
+      return -2;
+   }
+   if(mPsqlWrapper.closeConnection() != 0)
+   {
+      return -1;
+   }
+
+   if (mPsqlWrapper.GetResultSetSize() > 0)
+   {
+      std::cout << "Found a matching entry for " << regionName << " in " <<  tableName << std::endl;
+   } 
+
+   for (int resultIndex=0; resultIndex < mPsqlWrapper.GetResultSetSize(); resultIndex++)
+   {
+
+      if((PQgetisnull(mPsqlWrapper.GetQueryResult(),resultIndex,0) == 0) && (PQgetisnull(mPsqlWrapper.GetQueryResult(),resultIndex,1) == 0) &&
+         (PQgetisnull(mPsqlWrapper.GetQueryResult(),resultIndex,2) == 0) && (PQgetisnull(mPsqlWrapper.GetQueryResult(),resultIndex,3) == 0) &&
+         (PQgetisnull(mPsqlWrapper.GetQueryResult(),resultIndex,4) == 0) && (PQgetisnull(mPsqlWrapper.GetQueryResult(),resultIndex,5) == 0))
+      {
+         std::string regionId = std::string(PQgetvalue(mPsqlWrapper.GetQueryResult(),resultIndex,0));
+         std::string regionName = std::string(PQgetvalue(mPsqlWrapper.GetQueryResult(),resultIndex,1));
+         std::string minLatitude = std::string(PQgetvalue(mPsqlWrapper.GetQueryResult(),resultIndex,2));
+         std::string maxLatitude = std::string(PQgetvalue(mPsqlWrapper.GetQueryResult(),resultIndex,3));
+         std::string minLongitude = std::string(PQgetvalue(mPsqlWrapper.GetQueryResult(),resultIndex,4));
+         std::string maxLongitude = std::string(PQgetvalue(mPsqlWrapper.GetQueryResult(),resultIndex,5));
+         CRtcBndWrapper rtcBndWrapper = CRtcBndWrapper(regionId,regionName,minLatitude,minLongitude,maxLatitude,maxLongitude );
+         bndRegionMap.insert(std::pair<uint_least32_t,CRtcBndWrapper>(rtcBndWrapper.getRegionID(), rtcBndWrapper));
+      }
+   }
+   if(bndRegionMap.size() != 0)
+   {
+      regionMap = bndRegionMap;
+      return 0;
+   }
+   return -1;
+}
+
+
+int_least32_t CTigerShapeFileParser::searchRegionByName( std::string& regionName, region_bnd_map_t& regionMap )
+{
+   int_least32_t regionTypeCount;
+   region_bnd_map_t searchResults;
+   std::string tableName;
+   for (regionTypeCount = 0; regionTypeCount < region_type_e::invalid; regionTypeCount++)
+   {
+      region_bnd_map_t searchResultsByType;
+      switch (regionTypeCount)
+      {
+         case region_type_e::State :
+            tableName = "STATE";
+            break;
+         case region_type_e::County :
+            tableName = "COUNTY";
+            break;
+         case region_type_e::Place :
+            tableName = "PLACE";
+            break;
+         case region_type_e::SubCounty :
+            tableName = "SUBCOUNTY";
+            break; 
+         default:
+            std::cerr << "No valid region type\n";
+            return -1;
+      }
+      if(searchRegionByName(regionName, searchResultsByType, tableName) == 0)
+      {
+         if(searchResultsByType.size() != 0)
+         {
+            searchResults.insert(searchResultsByType.begin(), searchResultsByType.end());
+         }
+      }
+#ifdef DEBUG
+      else
+      {
+         std::cout << "Cannot find any for region for " << regionName << " from " << tableName << std::endl;
+      }
+#endif
+   }
+   if (searchResults.size() == 0)
+   {
+      return -1;
+   }
+   regionMap = searchResults;
+   return 0;
 }
