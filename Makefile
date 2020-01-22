@@ -8,7 +8,7 @@ CXXFLAGS += -g -Wall -Werror
 
 CFLAGS += -g -lpq
 
-CXXFLAGS += -DDEBUG -g
+CXXFLAGS += -g -lpq
 
 INC_DIRS += \
 	-I./include \

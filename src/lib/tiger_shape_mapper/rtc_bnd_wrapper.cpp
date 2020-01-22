@@ -43,7 +43,7 @@ CRtcBndWrapper::CRtcBndWrapper(std::string regionID, std::string regionName)
 
 std::string CRtcBndWrapper::to_string() const
 {
-   std::string templateString = std::string("Region ID: ") + std::to_string(mRegionID) + std::string("\tRegion Name: ") + mRegionName + std::string("\t Bounds: ");
+   std::string templateString = std::string("Region ID: ") + std::to_string(mRegionID) + std::string("\t\tRegion Name: ") + mRegionName + std::string("\t Bounds: ");
    templateString = templateString + std::string ("Min Latitude: ") + GetDecimalLatitude(mMinLatitude) + std::string (",Max Latitude: ") + GetDecimalLatitude(mMaxLatitude) + 
    std::string ("; Min Longitude: ") + GetDecimalLongitude(mMinLongitude) + std::string (", Max Longitude: ") + GetDecimalLongitude(mMaxLongitude) + std::string("\n");
    return templateString;
@@ -129,7 +129,6 @@ std::string CRtcBndWrapper::GetDecimalLatitude(std::string degreeDecimal) const
 std::string CRtcBndWrapper::GetDecimalLongitude(std::string degreeDecimal) const 
 {
    std::string degMinSec;
-   
    if(degreeDecimal.length() == 0)
    {
       return degMinSec;
@@ -160,6 +159,5 @@ std::string CRtcBndWrapper::GetDecimalLongitude(std::string degreeDecimal) const
    {
      degMinSec += " E";
    }
-
    return degMinSec;
 }

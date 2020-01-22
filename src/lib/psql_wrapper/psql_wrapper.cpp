@@ -1,4 +1,5 @@
 #include <psql_wrapper.h>
+#include <iostream>
 
 CPSQLWrapper::CPSQLWrapper(std::string dbHostname, std::string dbName, std::string dbUser, std::string dbPassword)
 {
@@ -18,7 +19,23 @@ ExecStatusType CPSQLWrapper::processQuery(const std::string& queryString)
    }
    mQueryResult = PQexec(mDbConnection, queryString.c_str());
    return PQresultStatus(mQueryResult);
+}
 
+ExecStatusType CPSQLWrapper::processExecParamsQuery( std::string queryToPrep, int_least32_t nParams, const char * const *paramValues, const int *paramLengths)
+{
+   if(mQueryResult != nullptr)
+   {
+      PQclear(mQueryResult);
+   }
+   if((paramValues == nullptr) || (paramLengths == nullptr))
+   {
+      return PGRES_FATAL_ERROR;
+   }
+   const char *command = queryToPrep.c_str();
+   const int paramFormats[] = {0};
+   
+   mQueryResult = PQexecParams(mDbConnection, command, nParams, NULL, paramValues, paramLengths, paramFormats, 0);
+   return PQresultStatus(mQueryResult);
 }
 
 const std::string CPSQLWrapper::getDbName() const
@@ -30,7 +47,6 @@ std::string CPSQLWrapper::getQueryErrorMessage()
 {
    return std::string (PQresultErrorMessage(mQueryResult));
 }
-
 
 int_least32_t CPSQLWrapper::openConnection()
 {
@@ -71,6 +87,7 @@ int_least32_t CPSQLWrapper::GetColumnSize()
    }
    return -1;
 }
+
 PGresult* CPSQLWrapper::GetQueryResult()
 {
    return mQueryResult;
