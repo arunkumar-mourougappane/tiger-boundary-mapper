@@ -12,7 +12,7 @@
 
 void printUsage(std::string app_path)
 {
-   std::cout << app_path << " --rtc-dir RTC_DIR_PATH --bnd-dir BND_DIR_PATH --search KEYWORD" << std::endl;
+   std::cout << app_path << " --rtc-dir RTC_DIR_PATH --bnd-dir BND_DIR_PATH [--contains] --search KEYWORD" << std::endl;
 }
 std::vector<std::string> listFiles(std::string &directoryPath, std::string fileType)
 {
@@ -42,17 +42,19 @@ int main(int argc, char **argv)
 {
    int c;
    std::string bndDir, rtcDir, keyWord;
+   bool useAsWildcard = false;
    while (1)
    {
       int option_index = 0;
       static struct option long_options[] = {
           {"rtc-dir", required_argument, 0, 'r'},
           {"bnd-dir", required_argument, 0, 'b'},
-          {"search", required_argument, 0, 's'},
-          {"help", required_argument, 0, 0},
-          {0, 0, 0, 0}};
+          {"search",  required_argument, 0, 's'},
+          {"contains", no_argument,      0, 'p' },
+          {"help",    required_argument, 0, 'h' },
+          {     0,      0,               0,  0}};
 
-      c = getopt_long_only(argc, argv, "rbs:h",
+      c = getopt_long_only(argc, argv, "rbsp:h",
                            long_options, &option_index);
       if (c == -1)
          break;
@@ -60,6 +62,9 @@ int main(int argc, char **argv)
       {
       case 's':
          keyWord = std::string(optarg);
+         break;
+      case 'p':
+         useAsWildcard =  true;
          break;
       case 'r':
          rtcDir = std::string(optarg);
@@ -76,7 +81,7 @@ int main(int argc, char **argv)
    {
       CTigerShapeFileParser tigerShapeFileParser;
       region_bnd_map_t bndMapDataMap;
-      if (tigerShapeFileParser.searchRegionByName(keyWord, bndMapDataMap ,false) == 0)
+      if (tigerShapeFileParser.searchRegionByName(keyWord, bndMapDataMap , useAsWildcard) == 0)
       {
          for (std::pair<uint_least32_t,CRtcBndWrapper> element : bndMapDataMap)
          {
@@ -87,8 +92,15 @@ int main(int argc, char **argv)
       {
          std::cout << "No entry Found!" << std::endl;
       }
+      return 0;
    }
    else if ((bndDir.length() == 0) || (rtcDir.length() == 0))
+   {
+      printUsage(argv[0]);
+      return -1;
+   }
+   
+   if (useAsWildcard)
    {
       printUsage(argv[0]);
       return -1;

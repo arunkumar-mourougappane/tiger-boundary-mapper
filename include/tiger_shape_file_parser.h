@@ -37,7 +37,7 @@ class CTigerShapeFileParser
       int_least32_t parseBNDData();
       int_least32_t parseRTCData();
       int_least32_t serializeMapData( region_bnd_map_t regionMap,region_type_e regionType );
-      int_least32_t searchRegionByNameWhole( std::string& regionName, region_bnd_map_t& regionMap, std::string tableName,  bool searchByPattern );
+      int_least32_t searchRegionByName( std::string& regionName, region_bnd_map_t& regionMap, std::string tableName,  bool searchByPattern );
       std::string getRegionTableName(region_type_e regionType);
 
       static constexpr const char* PSQL_DBNAME = "amouroug";

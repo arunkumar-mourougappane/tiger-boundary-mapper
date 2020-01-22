@@ -341,7 +341,7 @@ std::string CTigerShapeFileParser::getRegionTableName(region_type_e regionType)
    return tableName;
 }
 
-int_least32_t CTigerShapeFileParser::searchRegionByNameWhole ( std::string& regionName, region_bnd_map_t& regionMap, std::string tableName , bool searchByPattern)
+int_least32_t CTigerShapeFileParser::searchRegionByName ( std::string& regionName, region_bnd_map_t& regionMap, std::string tableName , bool searchByPattern)
 {
    region_bnd_map_t bndRegionMap;
    if(mPsqlWrapper.openConnection() != 0)
@@ -358,7 +358,7 @@ int_least32_t CTigerShapeFileParser::searchRegionByNameWhole ( std::string& regi
       {
          std::cout << "Program did not complete success fully." << std::endl;
       }
-      if (  execStatus != PGRES_EMPTY_QUERY )
+      else if (  execStatus == PGRES_EMPTY_QUERY )
       {
    #ifdef DEBUG
          std::cout << "Cannot find any entries from " << tableName << std::endl;
@@ -378,7 +378,7 @@ int_least32_t CTigerShapeFileParser::searchRegionByNameWhole ( std::string& regi
       {
          std::cout << "Program did not complete success fully." << std::endl;
       }
-      if (  execStatus != PGRES_EMPTY_QUERY )
+      else if (  execStatus == PGRES_EMPTY_QUERY )
       {
 #ifdef DEBUG
          std::cout << "Cannot find any entries from " << tableName << std::endl;
@@ -414,7 +414,6 @@ int_least32_t CTigerShapeFileParser::searchRegionByNameWhole ( std::string& regi
          bndRegionMap.insert(std::pair<uint_least32_t,CRtcBndWrapper>(rtcBndWrapper.getRegionID(), rtcBndWrapper));
       }
    }
-   std::cout << bndRegionMap.size() <<"\n";
    if(bndRegionMap.size() != 0)
    {
       regionMap = bndRegionMap;
@@ -434,7 +433,7 @@ int_least32_t CTigerShapeFileParser::searchRegionByName( std::string& regionName
       region_bnd_map_t searchResultsByType;
       tableName = getRegionTableName((region_type_e)regionTypeCount);
       
-      if( searchRegionByNameWhole(regionName, searchResultsByType, tableName, searchByPattern) == 0)
+      if( searchRegionByName(regionName, searchResultsByType, tableName, searchByPattern) == 0)
       {
          if(searchResultsByType.size() != 0)
          {
