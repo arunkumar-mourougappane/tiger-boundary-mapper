@@ -38,3 +38,4 @@ script:
   - build/app/shape_data_app/shape_data_app --search Atlanta
   - build/app/shape_data_app/shape_data_app --search DeKalb
   - build/app/shape_data_app/shape_data_app --search Lithonia
+  - build/app/shape_data_app/shape_data_app --search Kalb --contains
