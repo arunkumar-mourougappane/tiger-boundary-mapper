@@ -76,11 +76,11 @@ int main(int argc, char **argv)
    {
       CTigerShapeFileParser tigerShapeFileParser;
       region_bnd_map_t bndMapDataMap;
-      if (tigerShapeFileParser.searchRegionByName(keyWord, bndMapDataMap) == 0)
+      if (tigerShapeFileParser.searchRegionByName(keyWord, bndMapDataMap ,false) == 0)
       {
          for (std::pair<uint_least32_t,CRtcBndWrapper> element : bndMapDataMap)
          {
-            std::cout << element.second.to_string() << std::endl;
+            std::cout << element.second.to_string();
          }
       }
       else
@@ -104,7 +104,9 @@ int main(int argc, char **argv)
       for (auto &bndFile : bndFiles)
       {
          bndFilePath = bndDir + bndFile;
+#ifdef DEBUG
          std::cout << "\nRTC File: " << rtcFile << " BND File: " << bndFile << std::endl;
+#endif
          CTigerShapeFileParser tigerShapeFileParser(rtcFilePath, bndFilePath);
          tigerShapeFileParser.parseBndRTCFiles();
          tigerShapeFileParser.saveParsedBndRTCData();

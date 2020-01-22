@@ -70,7 +70,9 @@ int_least32_t CTigerShapeFileParser::parseRTCData()
       std::cerr << "Cannot open file.\n";
       return -1;
    }
+#ifdef DEBUG
    std::cout << "Parsed RTC Data Successfully.\n";
+#endif
    return 0;
    
 }
@@ -183,7 +185,9 @@ int_least32_t CTigerShapeFileParser::parseBNDData()
    {
       mSubCountyBndMap.clear();
    }
+#ifdef DEBUG
    std::cout << "Parsed BND Data Successfully.\n";
+#endif
    return 0;
 }
 
@@ -290,7 +294,9 @@ int_least32_t CTigerShapeFileParser::saveParsedBndRTCData()
    {
       return -2;
    }
+#ifdef DEBUG
    std::cout << "Shape Data Has been successfully Updated.\n";
+#endif
    return 0;
 }
 
@@ -311,38 +317,86 @@ std::string CTigerShapeFileParser::trim(std::string str)
    return returnString;
 }
 
-int_least32_t CTigerShapeFileParser::searchRegionByName ( std::string& regionName, region_bnd_map_t& regionMap, std::string tableName )
+
+std::string CTigerShapeFileParser::getRegionTableName(region_type_e regionType)
 {
-   std::string queryToProcess;
+   std::string tableName = " ";
+   switch (regionType)
+   {
+      case region_type_e::State :
+         tableName = "STATE";
+         break;
+      case region_type_e::County :
+         tableName = "COUNTY";
+         break;
+      case region_type_e::Place :
+         tableName = "PLACE";
+         break;
+      case region_type_e::SubCounty :
+         tableName = "SUBCOUNTY";
+         break; 
+      default:
+         break;
+   }
+   return tableName;
+}
+
+int_least32_t CTigerShapeFileParser::searchRegionByNameWhole ( std::string& regionName, region_bnd_map_t& regionMap, std::string tableName , bool searchByPattern)
+{
    region_bnd_map_t bndRegionMap;
-   queryToProcess = std::string("SELECT * FROM ") + tableName +" WHERE iname = '" + regionName +"';";
    if(mPsqlWrapper.openConnection() != 0)
    {
       std::cout << "Cannot open connection.\n";
       exit(ENAVAIL);
    }
-   if ( mPsqlWrapper.processQuery(queryToProcess) !=  PGRES_TUPLES_OK )
+   
+   if(!searchByPattern)
    {
-      std::cout << "Program did not complete success fully." << std::endl;
+      std::string queryToProcess = std::string("SELECT * FROM ") + tableName +" WHERE iname = '" + regionName +"';";
+      ExecStatusType execStatus = mPsqlWrapper.processQuery(queryToProcess);
+      if ( execStatus !=  PGRES_TUPLES_OK )
+      {
+         std::cout << "Program did not complete success fully." << std::endl;
+      }
+      if (  execStatus != PGRES_EMPTY_QUERY )
+      {
+   #ifdef DEBUG
+         std::cout << "Cannot find any entries from " << tableName << std::endl;
+   #endif
+         return -2;
+      }
    }
-
-   if ( mPsqlWrapper.processQuery(queryToProcess)  == PGRES_EMPTY_QUERY )
+   else
    {
+      std::string queryToProcess  = std::string("SELECT * FROM ")+ tableName +(" WHERE iname LIKE '%' || $1 || '%';");
+      const char* iname = regionName.c_str();
+      int nParams = 1;
+      const char *const paramValues[] = {iname};
+      const int paramLengths[] = {sizeof(iname)};
+      ExecStatusType execStatus = mPsqlWrapper.processExecParamsQuery( queryToProcess, nParams, paramValues, paramLengths);
+      if ( execStatus !=  PGRES_TUPLES_OK )
+      {
+         std::cout << "Program did not complete success fully." << std::endl;
+      }
+      if (  execStatus != PGRES_EMPTY_QUERY )
+      {
 #ifdef DEBUG
-      std::cout << "Cannot find any entries from " << tableName << std::endl;
+         std::cout << "Cannot find any entries from " << tableName << std::endl;
 #endif
-      return -2;
+         return -2;
+      }
    }
+   
    if(mPsqlWrapper.closeConnection() != 0)
    {
       return -1;
    }
-
+#ifdef DEBUG
    if (mPsqlWrapper.GetResultSetSize() > 0)
    {
       std::cout << "Found a matching entry for " << regionName << " in " <<  tableName << std::endl;
    } 
-
+#endif
    for (int resultIndex=0; resultIndex < mPsqlWrapper.GetResultSetSize(); resultIndex++)
    {
 
@@ -360,6 +414,7 @@ int_least32_t CTigerShapeFileParser::searchRegionByName ( std::string& regionNam
          bndRegionMap.insert(std::pair<uint_least32_t,CRtcBndWrapper>(rtcBndWrapper.getRegionID(), rtcBndWrapper));
       }
    }
+   std::cout << bndRegionMap.size() <<"\n";
    if(bndRegionMap.size() != 0)
    {
       regionMap = bndRegionMap;
@@ -369,7 +424,7 @@ int_least32_t CTigerShapeFileParser::searchRegionByName ( std::string& regionNam
 }
 
 
-int_least32_t CTigerShapeFileParser::searchRegionByName( std::string& regionName, region_bnd_map_t& regionMap )
+int_least32_t CTigerShapeFileParser::searchRegionByName( std::string& regionName, region_bnd_map_t& regionMap, bool searchByPattern )
 {
    int_least32_t regionTypeCount;
    region_bnd_map_t searchResults;
@@ -377,25 +432,9 @@ int_least32_t CTigerShapeFileParser::searchRegionByName( std::string& regionName
    for (regionTypeCount = 0; regionTypeCount < region_type_e::invalid; regionTypeCount++)
    {
       region_bnd_map_t searchResultsByType;
-      switch (regionTypeCount)
-      {
-         case region_type_e::State :
-            tableName = "STATE";
-            break;
-         case region_type_e::County :
-            tableName = "COUNTY";
-            break;
-         case region_type_e::Place :
-            tableName = "PLACE";
-            break;
-         case region_type_e::SubCounty :
-            tableName = "SUBCOUNTY";
-            break; 
-         default:
-            std::cerr << "No valid region type\n";
-            return -1;
-      }
-      if(searchRegionByName(regionName, searchResultsByType, tableName) == 0)
+      tableName = getRegionTableName((region_type_e)regionTypeCount);
+      
+      if( searchRegionByNameWhole(regionName, searchResultsByType, tableName, searchByPattern) == 0)
       {
          if(searchResultsByType.size() != 0)
          {

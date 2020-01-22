@@ -31,6 +31,7 @@ class CPSQLWrapper
       CPSQLWrapper(std::string dbHostname, std::string dbName, std::string  dbUser, std::string dbPassword);
       ~CPSQLWrapper(){};
       ExecStatusType processQuery(const std::string& queryString);
+      ExecStatusType processExecParamsQuery( std::string queryToPrep, int_least32_t nParams, const char * const *paramValues, const int *paramLengths);
       const std::string getDbName() const;
       std::string getQueryErrorMessage();
       int_least32_t GetResultSetSize();
