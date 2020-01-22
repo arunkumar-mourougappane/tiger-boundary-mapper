@@ -26,7 +26,6 @@ int_least32_t CTigerShapeFileParser::parseRTCData()
    CRtcBndWrapper rtcData;
    if(regionIdNameFileStream.is_open())
    {
-
       // reads the input file line by line
       while (getline(regionIdNameFileStream, regionIDNameString))
       {
@@ -74,7 +73,6 @@ int_least32_t CTigerShapeFileParser::parseRTCData()
    std::cout << "Parsed RTC Data Successfully.\n";
 #endif
    return 0;
-   
 }
 
 int_least32_t CTigerShapeFileParser::parseBNDData()
@@ -88,7 +86,6 @@ int_least32_t CTigerShapeFileParser::parseBNDData()
    std::map<uint_least32_t,CRtcBndWrapper>::iterator iteratorBndRRC;
    if(readBoundsFileStream.is_open())
    {
-
       while(getline(readBoundsFileStream, boundFileLineString))
       {
          uint_least32_t regionIDInt;
@@ -214,24 +211,7 @@ int_least32_t CTigerShapeFileParser::serializeMapData( region_bnd_map_t regionMa
    std::string tableName;
    bool queryProcessingFailed = false;
    std::map<uint_least32_t, CRtcBndWrapper>::iterator itrRtcBnd; 
-   switch (regionType)
-   {
-      case region_type_e::State :
-         tableName = "STATE";
-         break;
-      case region_type_e::County :
-         tableName = "COUNTY";
-         break;
-      case region_type_e::Place :
-         tableName = "PLACE";
-         break;
-      case region_type_e::SubCounty :
-         tableName = "SUBCOUNTY";
-         break; 
-      default:
-         std::cerr << "No valid region type\n";
-         return -1;
-   }
+   tableName = getRegionTableName(regionType);
    for(itrRtcBnd = regionMap.begin(); itrRtcBnd != regionMap.end(); ++itrRtcBnd)
    {
       std::string queryString = "INSERT INTO "+tableName+" (ID,IName,Min_Latitude,Max_Latitude,Min_Longitude,Max_Longitude) values (" +
@@ -252,20 +232,17 @@ int_least32_t CTigerShapeFileParser::serializeMapData( region_bnd_map_t regionMa
    {
       return 0;
    }
-   
 }
 
 int_least32_t CTigerShapeFileParser::saveParsedBndRTCData()
 {
    bool queryProcessingFailed = false;
    std::map<uint_least32_t, CRtcBndWrapper>::iterator itrRtcBnd; 
-
    if(mPsqlWrapper.openConnection() != 0)
    {
       std::cout << "Cannot open connection.\n";
       exit(ENAVAIL);
    }
-
    if( serializeMapData(mStateBndMap,region_type_e::State) != 0)
    {
       queryProcessingFailed = true;
@@ -274,12 +251,10 @@ int_least32_t CTigerShapeFileParser::saveParsedBndRTCData()
    {
       queryProcessingFailed = true;
    }
-
    if( serializeMapData(mSubCountyBndMap,region_type_e::SubCounty) != 0)
    {
       queryProcessingFailed = true;
    }
-   
    if( serializeMapData(mPlaceBndMap,region_type_e::Place)!= 0)
    {
       queryProcessingFailed = true;
@@ -289,7 +264,6 @@ int_least32_t CTigerShapeFileParser::saveParsedBndRTCData()
    {
       return -1;
    }
-   
    if(queryProcessingFailed)
    {
       return -2;
@@ -386,7 +360,6 @@ int_least32_t CTigerShapeFileParser::searchRegionByName ( std::string& regionNam
          return -2;
       }
    }
-   
    if(mPsqlWrapper.closeConnection() != 0)
    {
       return -1;
@@ -399,7 +372,6 @@ int_least32_t CTigerShapeFileParser::searchRegionByName ( std::string& regionNam
 #endif
    for (int resultIndex=0; resultIndex < mPsqlWrapper.GetResultSetSize(); resultIndex++)
    {
-
       if((PQgetisnull(mPsqlWrapper.GetQueryResult(),resultIndex,0) == 0) && (PQgetisnull(mPsqlWrapper.GetQueryResult(),resultIndex,1) == 0) &&
          (PQgetisnull(mPsqlWrapper.GetQueryResult(),resultIndex,2) == 0) && (PQgetisnull(mPsqlWrapper.GetQueryResult(),resultIndex,3) == 0) &&
          (PQgetisnull(mPsqlWrapper.GetQueryResult(),resultIndex,4) == 0) && (PQgetisnull(mPsqlWrapper.GetQueryResult(),resultIndex,5) == 0))

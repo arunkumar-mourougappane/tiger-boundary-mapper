@@ -129,7 +129,6 @@ std::string CRtcBndWrapper::GetDecimalLatitude(std::string degreeDecimal) const
 std::string CRtcBndWrapper::GetDecimalLongitude(std::string degreeDecimal) const 
 {
    std::string degMinSec;
-   
    if(degreeDecimal.length() == 0)
    {
       return degMinSec;
@@ -160,6 +159,5 @@ std::string CRtcBndWrapper::GetDecimalLongitude(std::string degreeDecimal) const
    {
      degMinSec += " E";
    }
-
    return degMinSec;
 }

@@ -52,7 +52,7 @@ int main(int argc, char **argv)
           {"search",  required_argument, 0, 's'},
           {"contains", no_argument,      0, 'p' },
           {"help",    required_argument, 0, 'h' },
-          {     0,      0,               0,  0}};
+          {     0,      0,               0,  0  }};
 
       c = getopt_long_only(argc, argv, "rbsp:h",
                            long_options, &option_index);
