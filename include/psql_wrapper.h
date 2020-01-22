@@ -1,28 +1,39 @@
-
-/***********************************************************
+/**
+ * @file psql_wrapper.h
+ * @author Arunkumar Mourougappane (amouroug@buffalo.edu)
+ * @brief A C++ wrapper across psql C API to perform queries,
+ *        parse result sets and perform commands.
+ * @version 1.0
+ * @date 01-22-2020
  * 
- *   File: psql_wrapper.h
+ * @copyright Copyright (c) 2020
  * 
- *   Author: Arunkumar Mourougappane 
- * 
- *   Copyright 2019.          Language: C++11
- * 
- ***********************************************************/
+ */
 #ifndef PSQL_WRAPPER_H
 #define PSQL_WRAPPER_H
 #include <algorithm>
 #include <libpq-fe.h>
 #include <string>
 #include <cstdlib>
-
+/**
+ * @brief A class wrapper for libpq library to store, query result
+ *        perform commands and handle connections.
+ * 
+ */
 class CPSQLWrapper
 {
    private:
+      // PSQL database connection.
       PGconn *mDbConnection;
+      // PSQL Quert Result
       PGresult* mQueryResult;
+      // Host to connect to
       std::string mDbHost;
+      // Database Name
       std::string mDbName;
+      // Database user information.
       std::string mDbUser;
+      // Database password
       std::string mDbPassword;
    public:
       int_least32_t openConnection();
