@@ -3,7 +3,7 @@
  * @author Arunkumar Mourougappane (amouroug@buffalo.edu)
  * @brief A C++ wrapper across psql C API to perform queries,
  *        parse result sets and perform commands.
- * @version 1.0
+ * @version 1.1
  * @date 01-22-2020
  * 
  * @copyright Copyright (c) 2020

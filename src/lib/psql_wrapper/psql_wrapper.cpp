@@ -134,7 +134,7 @@ int_least32_t CPSQLWrapper::closeConnection()
 /**
  * @brief GetResultSetSize() returns the number of results returned by query.
  * 
- * @return int_least32_t returns number of results.
+ * @return int_least32_t Returns number of results.
  */
 int_least32_t CPSQLWrapper::GetResultSetSize()
 {
@@ -149,7 +149,7 @@ int_least32_t CPSQLWrapper::GetResultSetSize()
 /**
  * @brief GetColumnSize() returns number of columns in the result set.
  * 
- * @return int_least32_t returns number of columns.
+ * @return int_least32_t Returns number of columns.
  */
 int_least32_t CPSQLWrapper::GetColumnSize()
 {
