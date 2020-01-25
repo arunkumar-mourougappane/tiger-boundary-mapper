@@ -1,3 +1,13 @@
+/**
+ * @file psql_wrapper.cpp
+ * @author Arunkumar Mourougappane (amouroug@buffalo.edu)
+ * @brief Implementation of Postgresql wrapper API.
+ * @version 1.0
+ * @date 01-25-2020
+ * 
+ * @copyright Copyright (c) 2020
+ * 
+ */
 #include <psql_wrapper.h>
 #include <iostream>
 
