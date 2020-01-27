@@ -1,3 +1,14 @@
+/**
+ * @file tiger_shape_file_parser.cpp
+ * @author Arunkumar Mourougappane (amouroug@buffalo.edu)
+ * @brief Implementation for Shape file parser library capable of keyword searches for
+ *        region name.
+ * @version 1.0
+ * @date 01-25-2020
+ * 
+ * @copyright Copyright (c) 2020
+ * 
+ */
 #include <tiger_shape_file_parser.h>
 #include <sstream>
 #include <fstream>

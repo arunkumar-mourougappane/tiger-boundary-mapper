@@ -18,7 +18,6 @@
  * @param dbName - database name 
  * @param dbUser - database username for credential
  * @param dbPassword - database password for credential
- *
  */
 CPSQLWrapper::CPSQLWrapper(std::string dbHostname, std::string dbName, std::string dbUser, std::string dbPassword)
 {
