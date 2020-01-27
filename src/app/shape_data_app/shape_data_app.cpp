@@ -1,3 +1,14 @@
+/**
+ * @file shape_data_app.cpp
+ * @author Arunkumar Mourougappane (amouroug@buffalo.edu)
+ * @brief An app example making use of the Parser library to perform serialization
+ *        and search.
+ * @version 2.0
+ * @date 01-25-2020
+ * 
+ * @copyright Copyright (c) 2020
+ * 
+ */
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -8,12 +19,27 @@
 #include <cstring>
 #include <iostream>
 
+// library header file to include.
 #include <tiger_shape_file_parser.h>
 
+/**
+ * @brief Prints uusage example for the application.
+ * 
+ * @param app_path path of the application.
+ */
 void printUsage(std::string app_path)
 {
    std::cout << app_path << " --rtc-dir RTC_DIR_PATH --bnd-dir BND_DIR_PATH [--contains] --search KEYWORD" << std::endl;
 }
+
+/**
+ * @brief Reads a directory path for files of specific extenssions.
+ * 
+ * @param directoryPath Path to look into.
+ * @param fileType Exntension for files to look for
+ * @return std::vector<std::string> On success returns a vector of file names and on
+ *         failure returns an empty vector.
+ */
 std::vector<std::string> listFiles(std::string &directoryPath, std::string fileType)
 {
    DIR *dirFile = opendir(directoryPath.c_str());
@@ -24,6 +50,7 @@ std::vector<std::string> listFiles(std::string &directoryPath, std::string fileT
       errno = 0;
       while ((hFile = readdir(dirFile)) != NULL)
       {
+         // Skip hidden files, current directory and previous directory data.
          if ((strcmp(hFile->d_name, ".") != 0) && (strcmp(hFile->d_name, "..") != 0) && (hFile->d_name[0] != '.'))
          {
             std::string fileString = std::string(hFile->d_name);
@@ -38,6 +65,10 @@ std::vector<std::string> listFiles(std::string &directoryPath, std::string fileT
    return filesFound;
 }
 
+/**
+ * @brief Application to test API dor parsing BND and RTC data as wells as
+ *        searching from database.
+ */
 int main(int argc, char **argv)
 {
    int c;
@@ -46,6 +77,7 @@ int main(int argc, char **argv)
    while (1)
    {
       int option_index = 0;
+      // Various long options.
       static struct option long_options[] = {
           {"rtc-dir", required_argument, 0, 'r'},
           {"bnd-dir", required_argument, 0, 'b'},
@@ -77,6 +109,7 @@ int main(int argc, char **argv)
          exit(1);
       }
    }
+   // if no proper option is chosen return error.
    if (keyWord.length() != 0)
    {
       CTigerShapeFileParser tigerShapeFileParser;
@@ -106,9 +139,11 @@ int main(int argc, char **argv)
       return -1;
    }
 
+   // List of RTC or BND files.
    std::vector<std::string> bndFiles = listFiles(bndDir, ".bnd");
    std::vector<std::string> rtcFiles = listFiles(rtcDir, ".RTC");
 
+   // Serialize all combinations of files.
    for (auto rtcFile : rtcFiles)
    {
       std::string bndFilePath, rtcFilePath;
