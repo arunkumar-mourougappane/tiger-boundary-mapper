@@ -29,7 +29,7 @@ before_install:
 
 before_script:
   - psql -f ./setup_psql_db.sql -U postgres
-  - psql -f ./table_creation.sql -U postgres -d amouroug
+  - psql -f ./table_creation.sql -U postgres -d shape_file_database
 
 script:
   - make -j$(cat /proc/cpuinfo | grep processor | tail -1| cut -d":" -f2)
