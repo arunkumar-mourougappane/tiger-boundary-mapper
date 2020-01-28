@@ -69,7 +69,7 @@ class CTigerShapeFileParser
       std::string getRegionTableName(region_type_e regionType);
       
       // Database login parameters for PSQL Connection.
-      static constexpr const char* PSQL_DBNAME = "amouroug";
+      static constexpr const char* PSQL_DBNAME = "shape_file_database";
       static constexpr const char* PSQL_PASSWORD = "FullMetalAlchemist#8";
       static constexpr const char* PSQL_USER = "amouroug";
       static constexpr const char* PSQL_HOSTNAME = "127.0.0.1";
