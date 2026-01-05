@@ -25,7 +25,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
-        sudo apt-get install -y libpq-dev postgresql-server-dev-all clang-tidy
+        sudo apt-get install -y libpq-dev clang-tidy
 
     - name: Install Dependencies (macOS)
       if: runner.os == 'macOS'
