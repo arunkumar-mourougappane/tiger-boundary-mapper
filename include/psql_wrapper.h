@@ -13,6 +13,7 @@
 #define PSQL_WRAPPER_H
 #include <memory>
 #include <string_view>
+#include <string>
 #include <libpq-fe.h>
 
 struct PGConnDeleter {
