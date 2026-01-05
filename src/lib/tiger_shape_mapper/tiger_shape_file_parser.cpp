@@ -304,7 +304,7 @@ int_least32_t CTigerShapeFileParser::saveParsedBndRTCData()
    if(mPsqlWrapper.openConnection() != 0)
    {
       std::cout << "Cannot open connection.\n";
-      exit(ENAVAIL);
+      exit(EXIT_FAILURE);
    }
    // Call for serialization of map information.
    if( serializeMapData(mStateBndMap, region_type_e::State) != 0)
@@ -414,7 +414,7 @@ int_least32_t CTigerShapeFileParser::searchRegionByName (std::string_view region
    if(mPsqlWrapper.openConnection() != 0)
    {
       std::cout << "Cannot open connection.\n";
-      exit(ENAVAIL);
+      exit(EXIT_FAILURE);
    }
    
    // Search for whole word if wildcard option is disabled.
