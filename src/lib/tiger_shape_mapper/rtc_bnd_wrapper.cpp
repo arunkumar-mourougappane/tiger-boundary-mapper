@@ -23,12 +23,12 @@
  * @param maxLatitude  Ending of the latitude bounds of the region.
  * @param maxLongitude Ending of the Longitude bounds of the region.
  */
-CRtcBndWrapper::CRtcBndWrapper(std::string regionID, std::string regionName,std::string minLatitude, std::string minLongitude, std::string maxLatitude, std::string maxLongitude)
+CRtcBndWrapper::CRtcBndWrapper(std::string_view regionID, std::string_view regionName, std::string_view minLatitude, std::string_view minLongitude, std::string_view maxLatitude, std::string_view maxLongitude)
 {
    mRegionID = 0;
    // string stream to convert region ID string argument to uin_least32_t 
    std::stringstream stringToint;
-   stringToint.str(regionID);
+   stringToint.str(std::string(regionID)); // stringstream needs std::string
    stringToint >> mRegionID;
    mRegionName = regionName;
    mMinLatitude = minLatitude;
@@ -47,7 +47,7 @@ CRtcBndWrapper::CRtcBndWrapper(std::string regionID, std::string regionName,std:
  * @param maxLatitude  Ending of the latitude bounds of the region.
  * @param maxLongitude Ending of the Longitude bounds of the region.
  */
-CRtcBndWrapper::CRtcBndWrapper(uint_least32_t regionID, std::string regionName,std::string minLatitude, std::string minLongitude, std::string maxLatitude, std::string maxLongitude)
+CRtcBndWrapper::CRtcBndWrapper(uint_least32_t regionID, std::string_view regionName, std::string_view minLatitude, std::string_view minLongitude, std::string_view maxLatitude, std::string_view maxLongitude)
 {
    mRegionID = regionID;
    mRegionName = regionName;
@@ -63,13 +63,13 @@ CRtcBndWrapper::CRtcBndWrapper(uint_least32_t regionID, std::string regionName,s
  * @param regionID    ID of the Region as string.
  * @param regionName  Name of the region to be converted to object.
  */
-CRtcBndWrapper::CRtcBndWrapper(std::string regionID, std::string regionName)
+CRtcBndWrapper::CRtcBndWrapper(std::string_view regionID, std::string_view regionName)
 {
    // Assign region ID a default value.
    mRegionID = 0;
    // string stream to convert region ID string argument to uin_least32_t 
    std::stringstream stringToint;
-   stringToint.str(regionID);
+   stringToint.str(std::string(regionID));
    stringToint >> mRegionID;
    mRegionName = regionName;
    // Empty bounds information are initialized if no information about them are provided.
@@ -103,7 +103,7 @@ std::string CRtcBndWrapper::to_string() const
  * 
  * @return uint_least32_t Returns the region ID saved in the instance.
  */
-uint_least32_t CRtcBndWrapper::getRegionID()
+uint_least32_t CRtcBndWrapper::getRegionID() const
 {
    return mRegionID;
 }
@@ -113,7 +113,7 @@ uint_least32_t CRtcBndWrapper::getRegionID()
  * 
  * @return std::string Returns the string for Region Name saved in the instance.
  */
-std::string CRtcBndWrapper::getRegionName() 
+std::string_view CRtcBndWrapper::getRegionName() const
 {
    return mRegionName;
 }
@@ -123,7 +123,7 @@ std::string CRtcBndWrapper::getRegionName()
  * 
  * @return std::string Returns the immuatable string for Start Longitude for the saved instance of region.
  */
-std::string CRtcBndWrapper::getMinLongitude() const
+std::string_view CRtcBndWrapper::getMinLongitude() const
 {
    return mMinLongitude;
 }
@@ -133,7 +133,7 @@ std::string CRtcBndWrapper::getMinLongitude() const
  * 
  * @return std::string Returns the immuatable string for Start Latitude for the saved instance of region.
  */
-std::string CRtcBndWrapper::getMinLatitude() const
+std::string_view CRtcBndWrapper::getMinLatitude() const
 {
    return mMinLatitude;
 }
@@ -143,7 +143,7 @@ std::string CRtcBndWrapper::getMinLatitude() const
  * 
  * @return std::string Returns the immuatable string for end Latitude for the saved instance of region.
  */
-std::string CRtcBndWrapper::getMaxLatitude() const
+std::string_view CRtcBndWrapper::getMaxLatitude() const
 {
    return mMaxLatitude;
 }
@@ -153,7 +153,7 @@ std::string CRtcBndWrapper::getMaxLatitude() const
  * 
  * @return std::string Returns the immuatable string for Ending Longitude for the saved instance of region.
  */
-std::string CRtcBndWrapper::getMaxLongitude() const
+std::string_view CRtcBndWrapper::getMaxLongitude() const
 {
    return mMaxLongitude;
 }
@@ -164,7 +164,7 @@ std::string CRtcBndWrapper::getMaxLongitude() const
  * 
  * @param minLongitude Starting Longitude numerals in std::string.
  */
-void CRtcBndWrapper::setMinLongitude(std::string minLongitude)
+void CRtcBndWrapper::setMinLongitude(std::string_view minLongitude)
 {
    mMinLongitude = minLongitude;
 }
@@ -174,7 +174,7 @@ void CRtcBndWrapper::setMinLongitude(std::string minLongitude)
  * 
  * @param minLatitude Starting Latitude numerals in std::string.
  */
-void CRtcBndWrapper::setMinLatitude(std::string minLatitude)
+void CRtcBndWrapper::setMinLatitude(std::string_view minLatitude)
 {
    mMinLatitude = minLatitude;
 }
@@ -184,7 +184,7 @@ void CRtcBndWrapper::setMinLatitude(std::string minLatitude)
  * 
  * @param maxLatitude Ending Latitude numerals in std::string.
  */
-void CRtcBndWrapper::setMaxLatitude(std::string maxLatitude)
+void CRtcBndWrapper::setMaxLatitude(std::string_view maxLatitude)
 {
    mMaxLatitude = maxLatitude;
 }
@@ -194,7 +194,7 @@ void CRtcBndWrapper::setMaxLatitude(std::string maxLatitude)
  * 
  * @param maxLongitude Ending Longitude numerals in std::string.
  */
-void CRtcBndWrapper::setMaxLongitude(std::string maxLongitude)
+void CRtcBndWrapper::setMaxLongitude(std::string_view maxLongitude)
 {
    mMaxLongitude = maxLongitude;
 }
@@ -206,7 +206,7 @@ void CRtcBndWrapper::setMaxLongitude(std::string maxLongitude)
  *
  * @return std::string  Format string of latitude  with degrees, minutes & seconds denomination.
  */
-std::string CRtcBndWrapper::GetDecimalLatitude(std::string degreeDecimal) const 
+std::string CRtcBndWrapper::GetDecimalLatitude(std::string_view degreeDecimal) const 
 {
    std::string degMinSec;
       
@@ -219,10 +219,10 @@ std::string CRtcBndWrapper::GetDecimalLatitude(std::string degreeDecimal) const
    std::stringstream minutesString, secondString;
    /*Convert string into appropriate integer and float values*/
    unsigned int degrees; 
-   degreeString.str(degreeDecimal.substr(1,2));
+   degreeString.str(std::string(degreeDecimal.substr(1,2)));
    degreeString >> degrees;
    /* extract and calculate minutes */
-   float  minutes = (stof(degreeDecimal.substr(3,degreeDecimal.length()))*60/1000000);
+   float  minutes = (stof(std::string(degreeDecimal.substr(3,degreeDecimal.length())))*60/1000000);
    double minutes_double;
    // Fix the precission for minutes to 2 digits after decimal.
    float secondFractions= modf(minutes, &minutes_double);
@@ -252,7 +252,7 @@ std::string CRtcBndWrapper::GetDecimalLatitude(std::string degreeDecimal) const
  *
  * @return std::string  Format string of Longitude  with degrees, minutes & seconds denomination.
  */
-std::string CRtcBndWrapper::GetDecimalLongitude(std::string degreeDecimal) const 
+std::string CRtcBndWrapper::GetDecimalLongitude(std::string_view degreeDecimal) const 
 {
    std::string degMinSec;
    if(degreeDecimal.length() == 0)
@@ -264,10 +264,10 @@ std::string CRtcBndWrapper::GetDecimalLongitude(std::string degreeDecimal) const
    std::stringstream minutesString, secondString;
    // Convert string into appropriate integer and float values
    unsigned int degrees; 
-   degreeSring.str(degreeDecimal.substr(1,2));
+   degreeSring.str(std::string(degreeDecimal.substr(1,2)));
    degreeSring >> degrees;
    // extract and calculate minutes 
-   float  minutes = (stof(degreeDecimal.substr(4,degreeDecimal.length()))*60/1000000);
+   float  minutes = (stof(std::string(degreeDecimal.substr(4,degreeDecimal.length())))*60/1000000);
    double minutes_double;
    // Fix the precission for minutes to 2 digits after decimal.
    float secondFractions= modf(minutes, &minutes_double);

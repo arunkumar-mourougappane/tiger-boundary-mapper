@@ -22,7 +22,7 @@
  * @param rtcDataFile path to the '.RTC' file containing region ID and name in SSV format.
  * @param bndDataFile path to '.BND' file containing region ID, latitude and longitude info in CSV format.
  */
-CTigerShapeFileParser::CTigerShapeFileParser(std::string& rtcDataFile, std::string& bndDataFile)
+CTigerShapeFileParser::CTigerShapeFileParser(std::string_view rtcDataFile, std::string_view bndDataFile)
 {
    mPsqlWrapper = CPSQLWrapper(PSQL_HOSTNAME, PSQL_DBNAME,PSQL_USER, PSQL_PASSWORD);
    mRtcDataFile = rtcDataFile;
@@ -72,22 +72,22 @@ int_least32_t CTigerShapeFileParser::parseRTCData()
                case 'S':
                   idString = regionIDNameString.substr(5, 2);
                   rtcData = CRtcBndWrapper(idString, regionName);
-                  mStateBndMap.insert(std::pair<uint_least32_t, CRtcBndWrapper> (rtcData.getRegionID(),rtcData));
+                  mStateBndMap.insert({rtcData.getRegionID(), rtcData});
                   break;
                case 'P':
                   idString = regionIDNameString.substr(5, 2) + regionIDNameString.substr(14, 5);
                   rtcData = CRtcBndWrapper(idString, regionName);
-                  mPlaceBndMap.insert(std::pair<uint_least32_t, CRtcBndWrapper> (rtcData.getRegionID(),rtcData));
+                  mPlaceBndMap.insert({rtcData.getRegionID(), rtcData});
                   break;
                case 'C':
                   idString = regionIDNameString.substr(5, 5);
                   rtcData = CRtcBndWrapper(idString, regionName);
-                  mCountyBndMap.insert(std::pair<uint_least32_t, CRtcBndWrapper> (rtcData.getRegionID(),rtcData));
+                  mCountyBndMap.insert({rtcData.getRegionID(), rtcData});
                   break;
                case 'M':
                   idString =  regionIDNameString.substr(5, 2) + regionIDNameString.substr(14, 5);
                   rtcData = CRtcBndWrapper(idString, regionName);
-                  mSubCountyBndMap.insert(std::pair<uint_least32_t, CRtcBndWrapper> (rtcData.getRegionID(),rtcData));
+                  mSubCountyBndMap.insert({rtcData.getRegionID(), rtcData});
                   break;
             }
          }
@@ -119,7 +119,7 @@ int_least32_t CTigerShapeFileParser::parseBNDData()
    //open file.
    std::ifstream readBoundsFileStream(mBndDataFile);
    region_bnd_map_t stateBndMap, countyBndMap, placeBndMap, subCountyBndMap;
-   std::map<uint_least32_t,CRtcBndWrapper>::iterator iteratorBndRRC;
+   
    if(readBoundsFileStream.is_open())
    {
       while(getline(readBoundsFileStream, boundFileLineString))
@@ -136,46 +136,47 @@ int_least32_t CTigerShapeFileParser::parseBNDData()
          stringToint.clear();
          stringToint.str(regionID);
          stringToint >> regionIDInt;
-         iteratorBndRRC = mStateBndMap.find(regionIDInt);
-         // if the region is state add bounds to state
-         if(iteratorBndRRC != mStateBndMap.end() )
+         
+         if (auto it = mStateBndMap.find(regionIDInt); it != mStateBndMap.end())
          {
-            iteratorBndRRC->second.setMinLongitude(minLongitude);
-            iteratorBndRRC->second.setMinLatitude(minLatitude);
-            iteratorBndRRC->second.setMaxLatitude(maxLatitude);
-            iteratorBndRRC->second.setMaxLongitude(maxLongitude);
-            stateBndMap.insert(std::pair<uint_least32_t, CRtcBndWrapper> (regionIDInt, CRtcBndWrapper(regionID,iteratorBndRRC->second.getRegionName(), minLatitude, minLongitude, maxLatitude,maxLongitude)));
+             auto& [key, wrapper] = *it;
+             wrapper.setMinLongitude(minLongitude);
+             wrapper.setMinLatitude(minLatitude);
+             wrapper.setMaxLatitude(maxLatitude);
+             wrapper.setMaxLongitude(maxLongitude);
+             stateBndMap.insert({regionIDInt, CRtcBndWrapper(regionID, wrapper.getRegionName(), minLatitude, minLongitude, maxLatitude, maxLongitude)});
          }
-         // if region is county add to county map.
-         iteratorBndRRC = mCountyBndMap.find(regionIDInt);
-         if(iteratorBndRRC != mCountyBndMap.end() )
+
+         if (auto it = mCountyBndMap.find(regionIDInt); it != mCountyBndMap.end())
          {
-            iteratorBndRRC->second.setMinLongitude(minLongitude);
-            iteratorBndRRC->second.setMinLatitude(minLatitude);
-            iteratorBndRRC->second.setMaxLatitude(maxLatitude);
-            iteratorBndRRC->second.setMaxLongitude(maxLongitude);
-            countyBndMap.insert(std::pair<uint_least32_t, CRtcBndWrapper> (regionIDInt, CRtcBndWrapper(regionID,iteratorBndRRC->second.getRegionName(), minLatitude, minLongitude, maxLatitude,maxLongitude)));
+             auto& [key, wrapper] = *it;
+             wrapper.setMinLongitude(minLongitude);
+             wrapper.setMinLatitude(minLatitude);
+             wrapper.setMaxLatitude(maxLatitude);
+             wrapper.setMaxLongitude(maxLongitude);
+             countyBndMap.insert({regionIDInt, CRtcBndWrapper(regionID, wrapper.getRegionName(), minLatitude, minLongitude, maxLatitude, maxLongitude)});
          }
-         // if region is place add to place map.
-         iteratorBndRRC = mPlaceBndMap.find(regionIDInt);
-         if(iteratorBndRRC != mPlaceBndMap.end() )
+
+         if (auto it = mPlaceBndMap.find(regionIDInt); it != mPlaceBndMap.end())
          {
-            iteratorBndRRC->second.setMinLongitude(minLongitude);
-            iteratorBndRRC->second.setMinLatitude(minLatitude);
-            iteratorBndRRC->second.setMaxLatitude(maxLatitude);
-            iteratorBndRRC->second.setMaxLongitude(maxLongitude);
-            placeBndMap.insert(std::pair<uint_least32_t, CRtcBndWrapper> (regionIDInt, CRtcBndWrapper(regionIDInt,iteratorBndRRC->second.getRegionName(), minLatitude, minLongitude, maxLatitude,maxLongitude)));
+             auto& [key, wrapper] = *it;
+             wrapper.setMinLongitude(minLongitude);
+             wrapper.setMinLatitude(minLatitude);
+             wrapper.setMaxLatitude(maxLatitude);
+             wrapper.setMaxLongitude(maxLongitude);
+             placeBndMap.insert({regionIDInt, CRtcBndWrapper(regionIDInt, wrapper.getRegionName(), minLatitude, minLongitude, maxLatitude, maxLongitude)});
          }
-         // if the region is a sub-county add to sub-county map.
-         iteratorBndRRC = mSubCountyBndMap.find(regionIDInt);
-         if(iteratorBndRRC != mSubCountyBndMap.end() )
+
+         if (auto it = mSubCountyBndMap.find(regionIDInt); it != mSubCountyBndMap.end())
          {
-            iteratorBndRRC->second.setMinLongitude(minLongitude);
-            iteratorBndRRC->second.setMinLatitude(minLatitude);
-            iteratorBndRRC->second.setMaxLatitude(maxLatitude);
-            iteratorBndRRC->second.setMaxLongitude(maxLongitude);
-            subCountyBndMap.insert(std::pair<uint_least32_t, CRtcBndWrapper> (regionIDInt, CRtcBndWrapper(regionID,iteratorBndRRC->second.getRegionName(), minLatitude, minLongitude, maxLatitude,maxLongitude)));
+             auto& [key, wrapper] = *it;
+             wrapper.setMinLongitude(minLongitude);
+             wrapper.setMinLatitude(minLatitude);
+             wrapper.setMaxLatitude(maxLatitude);
+             wrapper.setMaxLongitude(maxLongitude);
+             subCountyBndMap.insert({regionIDInt, CRtcBndWrapper(regionID, wrapper.getRegionName(), minLatitude, minLongitude, maxLatitude, maxLongitude)});
          }
+         
          // Clear all parsed data for loading next line.
          minLatitude.clear();
          minLongitude.clear();
@@ -191,7 +192,7 @@ int_least32_t CTigerShapeFileParser::parseBNDData()
       return -1;
    }
    // Clear all incomplete maps. Update member  instances if they only have complete data.
-   if(stateBndMap.size() != 0)
+   if(!stateBndMap.empty())
    {
       mStateBndMap = stateBndMap;
    }
@@ -199,7 +200,8 @@ int_least32_t CTigerShapeFileParser::parseBNDData()
    {
       mStateBndMap.clear();
    }
-   if(placeBndMap.size() != 0)
+   
+   if(!placeBndMap.empty())
    {
       mPlaceBndMap = placeBndMap;
    }
@@ -208,7 +210,7 @@ int_least32_t CTigerShapeFileParser::parseBNDData()
       mPlaceBndMap.clear();
    }
    
-   if(countyBndMap.size() != 0)
+   if(!countyBndMap.empty())
    {
       mCountyBndMap = countyBndMap;
    }
@@ -217,7 +219,7 @@ int_least32_t CTigerShapeFileParser::parseBNDData()
       mCountyBndMap.clear();
    }
    
-   if(subCountyBndMap.size() != 0)
+   if(!subCountyBndMap.empty())
    {
       mSubCountyBndMap = subCountyBndMap;
    }
@@ -259,19 +261,18 @@ int_least32_t CTigerShapeFileParser::parseBndRTCFiles()
  * @param regionType - map type to select table information.
  * @return int_least32_t  - Returns 0 on success, -1 on failure.
  */
-int_least32_t CTigerShapeFileParser::serializeMapData( region_bnd_map_t regionMap,region_type_e regionType )
+int_least32_t CTigerShapeFileParser::serializeMapData( region_bnd_map_t regionMap, region_type_e regionType )
 {
    std::string tableName;
    bool queryProcessingFailed = false;
-   std::map<uint_least32_t, CRtcBndWrapper>::iterator itrRtcBnd; 
    tableName = getRegionTableName(regionType);
-   for(itrRtcBnd = regionMap.begin(); itrRtcBnd != regionMap.end(); ++itrRtcBnd)
+   for(const auto& [id, wrapper] : regionMap)
    {
       // Insert query Statement.
       std::string queryString = "INSERT INTO "+tableName+" (ID,IName,Min_Latitude,Max_Latitude,Min_Longitude,Max_Longitude) values (" +
-               std::to_string(itrRtcBnd->second.getRegionID()) +",'" + itrRtcBnd->second.getRegionName() +"','"+
-               itrRtcBnd->second.getMinLatitude()+"','"+itrRtcBnd->second.getMaxLatitude()+"','"+
-               itrRtcBnd->second.getMinLongitude()+"','"+itrRtcBnd->second.getMaxLongitude()+ "') on conflict (id) do nothing;";
+               std::to_string(wrapper.getRegionID()) +",'" + std::string(wrapper.getRegionName()) +"','"+
+               std::string(wrapper.getMinLatitude())+"','"+std::string(wrapper.getMaxLatitude())+"','"+
+               std::string(wrapper.getMinLongitude())+"','"+std::string(wrapper.getMaxLongitude())+ "') on conflict (id) do nothing;";
       // Check for success or failure.
       if( mPsqlWrapper.processQuery(queryString) != PGRES_COMMAND_OK )
       {
@@ -299,27 +300,26 @@ int_least32_t CTigerShapeFileParser::serializeMapData( region_bnd_map_t regionMa
 int_least32_t CTigerShapeFileParser::saveParsedBndRTCData()
 {
    bool queryProcessingFailed = false;
-   std::map<uint_least32_t, CRtcBndWrapper>::iterator itrRtcBnd;
    // open a database connection.
    if(mPsqlWrapper.openConnection() != 0)
    {
       std::cout << "Cannot open connection.\n";
-      exit(ENAVAIL);
+      exit(EXIT_FAILURE);
    }
    // Call for serialization of map information.
-   if( serializeMapData(mStateBndMap,region_type_e::State) != 0)
+   if( serializeMapData(mStateBndMap, region_type_e::State) != 0)
    {
       queryProcessingFailed = true;
    }
-   if( serializeMapData(mCountyBndMap,region_type_e::County) != 0)
+   if( serializeMapData(mCountyBndMap, region_type_e::County) != 0)
    {
       queryProcessingFailed = true;
    }
-   if( serializeMapData(mSubCountyBndMap,region_type_e::SubCounty) != 0)
+   if( serializeMapData(mSubCountyBndMap, region_type_e::SubCounty) != 0)
    {
       queryProcessingFailed = true;
    }
-   if( serializeMapData(mPlaceBndMap,region_type_e::Place)!= 0)
+   if( serializeMapData(mPlaceBndMap, region_type_e::Place)!= 0)
    {
       queryProcessingFailed = true;
    }
@@ -345,18 +345,24 @@ int_least32_t CTigerShapeFileParser::saveParsedBndRTCData()
  * @param str - string to be trimmed.
  * @return std::string - result of trimmed string.
  */
-std::string CTigerShapeFileParser::trim(std::string str)
+/**
+ * @brief Trim unwanted whitespace at end of string.
+ * 
+ * @param str - string to be trimmed.
+ * @return std::string - result of trimmed string.
+ */
+std::string CTigerShapeFileParser::trim(std::string_view str)
 {
    std::string returnString;
-   for ( unsigned int i=0; i< str.size(); i++)
+   for (size_t i = 0; i < str.size(); i++)
    {
-      if((str[i] == ' ') && (str[i+1] == ' '))
+      if((str[i] == ' ') && (i + 1 < str.size() && str[i+1] == ' '))
       {
          break;
       }
       else
       {
-         returnString = returnString  + str[i];
+         returnString += str[i];
       }
     }
    return returnString;
@@ -401,20 +407,20 @@ std::string CTigerShapeFileParser::getRegionTableName(region_type_e regionType)
  * @return int_least32_t returns 0 on success , -1 or -2 on failure and fatally exists if there si
  *         issue opening database connection.
  */
-int_least32_t CTigerShapeFileParser::searchRegionByName ( std::string& regionName, region_bnd_map_t& regionMap, std::string tableName , bool searchByPattern)
+int_least32_t CTigerShapeFileParser::searchRegionByName (std::string_view regionName, region_bnd_map_t& regionMap, std::string_view tableName, bool searchByPattern)
 {
    region_bnd_map_t bndRegionMap;
    // Set up a connection.
    if(mPsqlWrapper.openConnection() != 0)
    {
       std::cout << "Cannot open connection.\n";
-      exit(ENAVAIL);
+      exit(EXIT_FAILURE);
    }
    
    // Search for whole word if wildcard option is disabled.
    if(!searchByPattern)
    {
-      std::string queryToProcess = std::string("SELECT * FROM ") + tableName +" WHERE iname = '" + regionName +"';";
+      std::string queryToProcess = std::string("SELECT * FROM ") + std::string(tableName) +" WHERE iname = '" + std::string(regionName) +"';";
       ExecStatusType execStatus = mPsqlWrapper.processQuery(queryToProcess);
       if ( execStatus !=  PGRES_TUPLES_OK )
       {
@@ -431,11 +437,12 @@ int_least32_t CTigerShapeFileParser::searchRegionByName ( std::string& regionNam
    else
    {
       // Do a wild card based sanitized search.
-      std::string queryToProcess  = std::string("SELECT * FROM ")+ tableName +(" WHERE iname LIKE '%' || $1 || '%';");
-      const char* iname = regionName.c_str();
+      std::string queryToProcess  = std::string("SELECT * FROM ")+ std::string(tableName) +(" WHERE iname LIKE '%' || $1 || '%';");
+      std::string regionNameStr(regionName);
+      const char* iname = regionNameStr.c_str();
       int nParams = 1;
       const char *const paramValues[] = {iname};
-      const int paramLengths[] = {sizeof(iname)};
+      const int paramLengths[] = {(int)sizeof(iname)}; 
       ExecStatusType execStatus = mPsqlWrapper.processExecParamsQuery( queryToProcess, nParams, paramValues, paramLengths);
       if ( execStatus !=  PGRES_TUPLES_OK )
       {
@@ -467,16 +474,16 @@ int_least32_t CTigerShapeFileParser::searchRegionByName ( std::string& regionNam
          (PQgetisnull(mPsqlWrapper.GetQueryResult(),resultIndex,4) == 0) && (PQgetisnull(mPsqlWrapper.GetQueryResult(),resultIndex,5) == 0))
       {
          std::string regionId = std::string(PQgetvalue(mPsqlWrapper.GetQueryResult(),resultIndex,0));
-         std::string regionName = std::string(PQgetvalue(mPsqlWrapper.GetQueryResult(),resultIndex,1));
+         std::string regionNameRes = std::string(PQgetvalue(mPsqlWrapper.GetQueryResult(),resultIndex,1));
          std::string minLatitude = std::string(PQgetvalue(mPsqlWrapper.GetQueryResult(),resultIndex,2));
          std::string maxLatitude = std::string(PQgetvalue(mPsqlWrapper.GetQueryResult(),resultIndex,3));
          std::string minLongitude = std::string(PQgetvalue(mPsqlWrapper.GetQueryResult(),resultIndex,4));
          std::string maxLongitude = std::string(PQgetvalue(mPsqlWrapper.GetQueryResult(),resultIndex,5));
-         CRtcBndWrapper rtcBndWrapper = CRtcBndWrapper(regionId,regionName,minLatitude,minLongitude,maxLatitude,maxLongitude );
-         bndRegionMap.insert(std::pair<uint_least32_t,CRtcBndWrapper>(rtcBndWrapper.getRegionID(), rtcBndWrapper));
+         CRtcBndWrapper rtcBndWrapper = CRtcBndWrapper(regionId, regionNameRes, minLatitude, minLongitude, maxLatitude, maxLongitude);
+         bndRegionMap.insert({rtcBndWrapper.getRegionID(), rtcBndWrapper});
       }
    }
-   if(bndRegionMap.size() != 0)
+   if(!bndRegionMap.empty())
    {
       regionMap = bndRegionMap;
       return 0;
@@ -493,20 +500,20 @@ int_least32_t CTigerShapeFileParser::searchRegionByName ( std::string& regionNam
  * @return int_least32_t returns 0 on success , -1 or -2 on failure and fatally exists if there si
  *         issue opening database connection.
  */
-int_least32_t CTigerShapeFileParser::searchRegionByName( std::string& regionName, region_bnd_map_t& regionMap, bool searchByPattern )
+int_least32_t CTigerShapeFileParser::searchRegionByName(std::string_view regionName, region_bnd_map_t& regionMap, bool searchByPattern)
 {
    int_least32_t regionTypeCount;
    region_bnd_map_t searchResults;
    std::string tableName;
    // Iterate and search by region Type.
-   for (regionTypeCount = 0; regionTypeCount < region_type_e::invalid; regionTypeCount++)
+   for (regionTypeCount = 0; regionTypeCount < static_cast<int>(region_type_e::invalid); regionTypeCount++)
    {
       region_bnd_map_t searchResultsByType;
       tableName = getRegionTableName((region_type_e)regionTypeCount);
       // Check if a region was found to match atleast.
       if( searchRegionByName(regionName, searchResultsByType, tableName, searchByPattern) == 0)
       {
-         if(searchResultsByType.size() != 0)
+         if(!searchResultsByType.empty())
          {
             searchResults.insert(searchResultsByType.begin(), searchResultsByType.end());
          }
@@ -518,7 +525,7 @@ int_least32_t CTigerShapeFileParser::searchRegionByName( std::string& regionName
       }
 #endif
    }
-   if (searchResults.size() == 0)
+   if (searchResults.empty())
    {
       return -1;
    }

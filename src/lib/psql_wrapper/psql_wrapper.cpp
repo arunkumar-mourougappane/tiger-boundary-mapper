@@ -19,14 +19,12 @@
  * @param dbUser - database username for credential
  * @param dbPassword - database password for credential
  */
-CPSQLWrapper::CPSQLWrapper(std::string dbHostname, std::string dbName, std::string dbUser, std::string dbPassword)
+CPSQLWrapper::CPSQLWrapper(std::string_view dbHostname, std::string_view dbName, std::string_view dbUser, std::string_view dbPassword)
 {
-   mDbHost=dbHostname;
-   mDbName=dbName;
-   mDbPassword=dbPassword;
+   mDbHost = dbHostname;
+   mDbName = dbName;
+   mDbPassword = dbPassword;
    mDbUser = dbUser;
-   mDbConnection = nullptr;
-   mQueryResult = nullptr;
 }
 
 /**
@@ -36,17 +34,15 @@ CPSQLWrapper::CPSQLWrapper(std::string dbHostname, std::string dbName, std::stri
  * @param queryString - database query as const string to be processed.
  * @return ExecStatusType - returns command status code.
  */
-ExecStatusType CPSQLWrapper::processQuery(const std::string& queryString)
+ExecStatusType CPSQLWrapper::processQuery(std::string_view queryString)
 {
    // Clear any previous result.
-   if(mQueryResult != nullptr)
-   {
-      PQclear(mQueryResult);
-   }
+   mQueryResult.reset();
+   
    // Save Result Information returned by executing the query.
-   mQueryResult = PQexec(mDbConnection, queryString.c_str());
+   mQueryResult.reset(PQexec(mDbConnection.get(), queryString.data()));
    // Parse and return status of Query.
-   return PQresultStatus(mQueryResult);
+   return PQresultStatus(mQueryResult.get());
 }
 
 /**
@@ -61,25 +57,23 @@ ExecStatusType CPSQLWrapper::processQuery(const std::string& queryString)
  * @param paramLengths    - Pointer to array of sizes of parameters
  * @return ExecStatusType - Result status type to return.
  */
-ExecStatusType CPSQLWrapper::processExecParamsQuery( std::string queryToPrep, int_least32_t nParams, const char * const *paramValues, const int *paramLengths)
+ExecStatusType CPSQLWrapper::processExecParamsQuery(std::string_view queryToPrep, int_least32_t nParams, const char * const *paramValues, const int *paramLengths)
 {
    // Clear any previous result.
-   if(mQueryResult != nullptr)
-   {
-      PQclear(mQueryResult);
-   }
+   mQueryResult.reset();
+
    // if no params are going to supplied we don't need a prepared statement.
    if((paramValues == nullptr) || (paramLengths == nullptr))
    {
       return PGRES_FATAL_ERROR;
    }
    // Prepare arguments.
-   const char *command = queryToPrep.c_str();
+   const char *command = queryToPrep.data();
    const int paramFormats[] = {0};
    // Actual query being processed.
-   mQueryResult = PQexecParams(mDbConnection, command, nParams, NULL, paramValues, paramLengths, paramFormats, 0);
+   mQueryResult.reset(PQexecParams(mDbConnection.get(), command, nParams, NULL, paramValues, paramLengths, paramFormats, 0));
    // Parse and return status of Query.
-   return PQresultStatus(mQueryResult);
+   return PQresultStatus(mQueryResult.get());
 }
 
 /**
@@ -88,7 +82,7 @@ ExecStatusType CPSQLWrapper::processExecParamsQuery( std::string queryToPrep, in
  * 
  * @return const std::string 
  */
-const std::string CPSQLWrapper::getDbName() const
+std::string_view CPSQLWrapper::getDbName() const
 {
    return mDbName;
 }
@@ -99,9 +93,9 @@ const std::string CPSQLWrapper::getDbName() const
  * 
  * @return std::string - returns error message string.
  */
-std::string CPSQLWrapper::getQueryErrorMessage()
+std::string CPSQLWrapper::getQueryErrorMessage() const
 {
-   return std::string (PQresultErrorMessage(mQueryResult));
+   return std::string (PQresultErrorMessage(mQueryResult.get()));
 }
 
 /**
@@ -116,9 +110,9 @@ int_least32_t CPSQLWrapper::openConnection()
 {
    std::string connectionString = std::string("host=") + mDbHost + std::string(" dbname=") + 
       mDbName + std::string(" user=")+mDbUser+ std::string(" password=") + mDbPassword;
-   mDbConnection =  PQconnectdb(connectionString.c_str());
+   mDbConnection.reset(PQconnectdb(connectionString.c_str()));
    // Status of connection.
-   if(PQstatus(mDbConnection) != CONNECTION_OK)
+   if(PQstatus(mDbConnection.get()) != CONNECTION_OK)
    {
       return -1;
    }
@@ -132,9 +126,9 @@ int_least32_t CPSQLWrapper::openConnection()
  */
 int_least32_t CPSQLWrapper::closeConnection()
 {
-   if(PQstatus(mDbConnection) == CONNECTION_OK)
+   if(mDbConnection && PQstatus(mDbConnection.get()) == CONNECTION_OK)
    {
-      PQfinish(mDbConnection);
+      mDbConnection.reset();
       return 0;
    }
    return -1;
@@ -145,12 +139,12 @@ int_least32_t CPSQLWrapper::closeConnection()
  * 
  * @return int_least32_t Returns number of results.
  */
-int_least32_t CPSQLWrapper::GetResultSetSize()
+int_least32_t CPSQLWrapper::GetResultSetSize() const
 {
    // if there is an actual query that has a result size then return it.
-   if(( mQueryResult != NULL) && (PQresultStatus(mQueryResult) == PGRES_TUPLES_OK))
+   if(( mQueryResult != nullptr) && (PQresultStatus(mQueryResult.get()) == PGRES_TUPLES_OK))
    {
-      return PQntuples(mQueryResult);
+      return PQntuples(mQueryResult.get());
    }
    return -1;
 }
@@ -160,11 +154,11 @@ int_least32_t CPSQLWrapper::GetResultSetSize()
  * 
  * @return int_least32_t Returns number of columns.
  */
-int_least32_t CPSQLWrapper::GetColumnSize()
+int_least32_t CPSQLWrapper::GetColumnSize() const
 {
-   if(( mQueryResult != NULL) && (PQresultStatus(mQueryResult) == PGRES_TUPLES_OK))
+   if(( mQueryResult != nullptr) && (PQresultStatus(mQueryResult.get()) == PGRES_TUPLES_OK))
    {
-      return PQnfields(mQueryResult);
+      return PQnfields(mQueryResult.get());
    }
    return -1;
 }
@@ -175,7 +169,7 @@ int_least32_t CPSQLWrapper::GetColumnSize()
  * 
  * @return PGresult* - pointer to query result.
  */
-PGresult* CPSQLWrapper::GetQueryResult()
+PGresult* CPSQLWrapper::GetQueryResult() const
 {
-   return mQueryResult;
+   return mQueryResult.get();
 }
