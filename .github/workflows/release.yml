@@ -1,0 +1,51 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-release:
+    name: Build Release Assets
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset_name: linux-x86_64
+          - os: macos-latest
+            asset_name: macos-x86_64
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libpq-dev
+
+    - name: Install Dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install libpq
+        echo "PostgreSQL_ROOT=$(brew --prefix libpq)" >> $GITHUB_ENV
+
+    - name: Configure CMake
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build build --config Release
+
+    - name: Package Binary
+      run: |
+        mkdir -p dist
+        cp build/shape_data_app dist/shape_data_app
+        tar -czvf tiger-mapper-${{ matrix.asset_name }}.tar.gz -C dist shape_data_app
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: tiger-mapper-${{ matrix.asset_name }}.tar.gz
