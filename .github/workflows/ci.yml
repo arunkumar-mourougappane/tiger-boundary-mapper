@@ -37,12 +37,15 @@ jobs:
 
     - name: Configure CMake
       run: |
+        TIDY_FLAG=""
         if [ "${{ matrix.compiler }}" = "gcc" ]; then
           export CXX=g++
         else
           export CXX=clang++
+          TIDY_FLAG="-DCMAKE_CXX_CLANG_TIDY=clang-tidy"
         fi
-        cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_CLANG_TIDY="clang-tidy"
+        
+        cmake -B build -DCMAKE_BUILD_TYPE=Release $TIDY_FLAG
 
     - name: Build
       run: cmake --build build
