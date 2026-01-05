@@ -1,0 +1,46 @@
+name: C++ CI with CMake and Static Analysis
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-analyze:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        compiler: [gcc, clang]
+        exclude:
+          - os: macos-latest
+            compiler: gcc
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libpq-dev postgresql-server-dev-all clang-tidy
+
+    - name: Install Dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install libpq llvm
+        echo "PostgreSQL_ROOT=$(brew --prefix libpq)" >> $GITHUB_ENV
+
+    - name: Configure CMake
+      run: |
+        if [ "${{ matrix.compiler }}" = "gcc" ]; then
+          export CXX=g++
+        else
+          export CXX=clang++
+        fi
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_CLANG_TIDY="clang-tidy"
+
+    - name: Build
+      run: cmake --build build

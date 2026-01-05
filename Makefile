@@ -55,14 +55,14 @@ clean:
 	rm -fr $(BUILDDIR) $(OUTPUT_DIR)
 
 $(BUILDDIR_LIB)/psql_wrapper/%.o: $(PROJECT_ROOT)/src/lib/psql_wrapper/%.cpp
-	$(CXX) $(CXXFLAGS) $(CDEFS) $(INC_DIRS) -c -std=c++14 -o$@ $<
+	$(CXX) $(CXXFLAGS) $(CDEFS) $(INC_DIRS) -c -std=c++20 -o$@ $<
 
 
 $(BUILDDIR_LIB)/tiger_shape_mapper/%.o: $(PROJECT_ROOT)/src/lib/tiger_shape_mapper/%.cpp
-	$(CXX) $(CXXFLAGS) $(CDEFS) $(INC_DIRS) -c -std=c++14 -o$@ $<
+	$(CXX) $(CXXFLAGS) $(CDEFS) $(INC_DIRS) -c -std=c++20 -o$@ $<
 
 $(BUILDDIR)/app/shape_data_app/%.o: $(PROJECT_ROOT)/src/app/shape_data_app/%.cpp
-	$(CXX) $(CXXFLAGS) $(CDEFS) $(INC_DIRS) -c -std=c++14 -o$@ $<
+	$(CXX) $(CXXFLAGS) $(CDEFS) $(INC_DIRS) -c -std=c++20 -o$@ $<
 
 $(BUILDDIR_LIB)/libpsql_wrapper.a :  $(BUILDDIR_LIB)/psql_wrapper/psql_wrapper.o
 	ar -r -o $($(BUILDDIR_LIB)/psql_wrapper) $@ $^

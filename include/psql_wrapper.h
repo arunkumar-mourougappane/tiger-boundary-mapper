@@ -11,10 +11,18 @@
  */
 #ifndef PSQL_WRAPPER_H
 #define PSQL_WRAPPER_H
-#include <algorithm>
+#include <memory>
+#include <string_view>
 #include <libpq-fe.h>
-#include <string>
-#include <cstdlib>
+
+struct PGConnDeleter {
+    void operator()(PGconn* conn) const { if (conn) PQfinish(conn); }
+};
+
+struct PGResultDeleter {
+    void operator()(PGresult* res) const { if (res) PQclear(res); }
+};
+
 /**
  * @brief A class wrapper for libpq library to store, query result
  *        perform commands and handle connections.
@@ -24,9 +32,9 @@ class CPSQLWrapper
 {
    private:
       // PSQL database connection.
-      PGconn *mDbConnection;
+      std::unique_ptr<PGconn, PGConnDeleter> mDbConnection;
       // PSQL Quert Result
-      PGresult* mQueryResult;
+      std::unique_ptr<PGresult, PGResultDeleter> mQueryResult;
       // Host to connect to
       std::string mDbHost;
       // Database Name
@@ -38,16 +46,21 @@ class CPSQLWrapper
    public:
       int_least32_t openConnection();
       int_least32_t closeConnection();
-      CPSQLWrapper(){};
-      CPSQLWrapper(std::string dbHostname, std::string dbName, std::string  dbUser, std::string dbPassword);
-      ~CPSQLWrapper(){};
-      ExecStatusType processQuery(const std::string& queryString);
-      ExecStatusType processExecParamsQuery( std::string queryToPrep, int_least32_t nParams, const char * const *paramValues, const int *paramLengths);
-      const std::string getDbName() const;
-      std::string getQueryErrorMessage();
-      int_least32_t GetResultSetSize();
-      int_least32_t GetColumnSize();
-      PGresult* GetQueryResult();
+      CPSQLWrapper() = default;
+      CPSQLWrapper(std::string_view dbHostname, std::string_view dbName, std::string_view dbUser, std::string_view dbPassword);
+      ~CPSQLWrapper() = default;
+      CPSQLWrapper(const CPSQLWrapper&) = delete; // Disable copy
+      CPSQLWrapper& operator=(const CPSQLWrapper&) = delete; // Disable assignment
+      CPSQLWrapper(CPSQLWrapper&&) = default; // Enable move
+      CPSQLWrapper& operator=(CPSQLWrapper&&) = default; // Enable move assignment
+
+      ExecStatusType processQuery(std::string_view queryString);
+      ExecStatusType processExecParamsQuery(std::string_view queryToPrep, int_least32_t nParams, const char * const *paramValues, const int *paramLengths);
+      [[nodiscard]] std::string_view getDbName() const;
+      [[nodiscard]] std::string getQueryErrorMessage() const;
+      [[nodiscard]] int_least32_t GetResultSetSize() const;
+      [[nodiscard]] int_least32_t GetColumnSize() const;
+      [[nodiscard]] PGresult* GetQueryResult() const;
 };
 // CENSUS_BND_FILE_PARSER ends here.
 #endif

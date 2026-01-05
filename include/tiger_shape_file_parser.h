@@ -15,25 +15,27 @@
 #include <rtc_bnd_wrapper.h>
 #include <psql_wrapper.h>
 #include <map>
+#include <string_view>
+#include <string>
 
 /**
  * @brief  Typedefenition for a map with region ID as key and
  *          CRtcBndWrapper as its value.
  */
-typedef std::map<uint_least32_t,CRtcBndWrapper> region_bnd_map_t;
+using region_bnd_map_t = std::map<uint_least32_t, CRtcBndWrapper>;
 
 /**
  * @brief enumeration of handling differnt region Types State, County, Subcounty
  *        Place.
  */
-typedef enum
+enum class region_type_e
 {
    State=0,
    County=1,
    SubCounty=2,
    Place=3,
    invalid = 4
-} region_type_e;
+};
 
 /**
  * @brief  Class defenition for C++ API to perform
@@ -45,12 +47,12 @@ typedef enum
 class CTigerShapeFileParser
 {
    public:
-      CTigerShapeFileParser(std::string& rtcDataFile, std::string& bndDataFile);
+      CTigerShapeFileParser(std::string_view rtcDataFile, std::string_view bndDataFile);
       CTigerShapeFileParser();
-      ~CTigerShapeFileParser(){};
+      ~CTigerShapeFileParser() = default;
       int_least32_t parseBndRTCFiles();
       int_least32_t saveParsedBndRTCData();
-      int_least32_t searchRegionByName( std::string& regionName, region_bnd_map_t& regionMap , bool searchByPattern );
+      [[nodiscard]] int_least32_t searchRegionByName(std::string_view regionName, region_bnd_map_t& regionMap, bool searchByPattern);
    
    private:
       region_bnd_map_t mStateBndMap;
@@ -61,18 +63,18 @@ class CTigerShapeFileParser
       std::string mRtcDataFile;
       std::string mBndDataFile;
       
-      std::string trim(std::string str);
+      [[nodiscard]] std::string trim(std::string_view str);
       int_least32_t parseBNDData();
       int_least32_t parseRTCData();
-      int_least32_t serializeMapData( region_bnd_map_t regionMap,region_type_e regionType );
-      int_least32_t searchRegionByName( std::string& regionName, region_bnd_map_t& regionMap, std::string tableName,  bool searchByPattern );
-      std::string getRegionTableName(region_type_e regionType);
+      int_least32_t serializeMapData( region_bnd_map_t regionMap, region_type_e regionType );
+      [[nodiscard]] int_least32_t searchRegionByName(std::string_view regionName, region_bnd_map_t& regionMap, std::string_view tableName, bool searchByPattern);
+      [[nodiscard]] std::string getRegionTableName(region_type_e regionType);
       
       // Database login parameters for PSQL Connection.
-      static constexpr const char* PSQL_DBNAME = "shape_file_database";
-      static constexpr const char* PSQL_PASSWORD = "FullMetalAlchemist#8";
-      static constexpr const char* PSQL_USER = "amouroug";
-      static constexpr const char* PSQL_HOSTNAME = "127.0.0.1";
+      static constexpr std::string_view PSQL_DBNAME = "shape_file_database";
+      static constexpr std::string_view PSQL_PASSWORD = "FullMetalAlchemist#8";
+      static constexpr std::string_view PSQL_USER = "amouroug";
+      static constexpr std::string_view PSQL_HOSTNAME = "127.0.0.1";
 };
 
 #endif

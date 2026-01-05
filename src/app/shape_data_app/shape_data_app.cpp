@@ -17,7 +17,7 @@
 #include <vector>
 #include <algorithm>
 #include <cstring>
-#include <iostream>
+#include <string_view>
 
 // library header file to include.
 #include <tiger_shape_file_parser.h>
@@ -27,7 +27,7 @@
  * 
  * @param app_path path of the application.
  */
-void printUsage(std::string app_path)
+void printUsage(std::string_view app_path)
 {
    std::cout << app_path << " --rtc-dir RTC_DIR_PATH --bnd-dir BND_DIR_PATH [--contains] --search KEYWORD" << std::endl;
 }
@@ -40,9 +40,9 @@ void printUsage(std::string app_path)
  * @return std::vector<std::string> On success returns a vector of file names and on
  *         failure returns an empty vector.
  */
-std::vector<std::string> listFiles(std::string &directoryPath, std::string fileType)
+std::vector<std::string> listFiles(std::string_view directoryPath, std::string_view fileType)
 {
-   DIR *dirFile = opendir(directoryPath.c_str());
+   DIR *dirFile = opendir(std::string(directoryPath).c_str());
    std::vector<std::string> filesFound;
    if (dirFile)
    {
@@ -53,10 +53,10 @@ std::vector<std::string> listFiles(std::string &directoryPath, std::string fileT
          // Skip hidden files, current directory and previous directory data.
          if ((strcmp(hFile->d_name, ".") != 0) && (strcmp(hFile->d_name, "..") != 0) && (hFile->d_name[0] != '.'))
          {
-            std::string fileString = std::string(hFile->d_name);
-            if ((fileString.substr(fileString.length() - 4, 4)).compare(fileType) == 0)
+            std::string_view fileString(hFile->d_name);
+            if (fileString.size() >= 4 && fileString.substr(fileString.length() - 4, 4) == fileType)
             {
-               filesFound.push_back(hFile->d_name);
+               filesFound.emplace_back(hFile->d_name);
             }
          }
       }
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
    int c;
    std::string bndDir, rtcDir, keyWord;
    bool useAsWildcard = false;
-   while (1)
+   while (true)
    {
       int option_index = 0;
       // Various long options.
@@ -110,15 +110,15 @@ int main(int argc, char **argv)
       }
    }
    // if no proper option is chosen return error.
-   if (keyWord.length() != 0)
+   if (!keyWord.empty())
    {
       CTigerShapeFileParser tigerShapeFileParser;
       region_bnd_map_t bndMapDataMap;
       if (tigerShapeFileParser.searchRegionByName(keyWord, bndMapDataMap , useAsWildcard) == 0)
       {
-         for (std::pair<uint_least32_t,CRtcBndWrapper> element : bndMapDataMap)
+         for (const auto& [id, element] : bndMapDataMap)
          {
-            std::cout << element.second.to_string();
+            std::cout << element.to_string();
          }
       }
       else
@@ -127,7 +127,7 @@ int main(int argc, char **argv)
       }
       return 0;
    }
-   else if ((bndDir.length() == 0) || (rtcDir.length() == 0))
+   else if ((bndDir.empty()) || (rtcDir.empty()))
    {
       printUsage(argv[0]);
       return -1;
@@ -144,11 +144,11 @@ int main(int argc, char **argv)
    std::vector<std::string> rtcFiles = listFiles(rtcDir, ".RTC");
 
    // Serialize all combinations of files.
-   for (auto rtcFile : rtcFiles)
+   for (const auto& rtcFile : rtcFiles)
    {
       std::string bndFilePath, rtcFilePath;
       rtcFilePath = rtcDir + rtcFile;
-      for (auto &bndFile : bndFiles)
+      for (const auto &bndFile : bndFiles)
       {
          bndFilePath = bndDir + bndFile;
 #ifdef DEBUG
